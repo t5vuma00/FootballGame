@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">FootballGame</string>
+    <string name="buttonStartGame">Start Game</string>
+    <string name="textViewFirstActivity">Football Game</string>
+</resources>
