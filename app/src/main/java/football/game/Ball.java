@@ -68,29 +68,24 @@ class Ball extends View implements View.OnTouchListener{
         }*/
     }
 
+    public void Draw(Canvas canvas){
+        Paint paint = new Paint();
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.BLUE);
+
+        canvas.drawCircle(ballCenterX, ballCenterY, ballRadius, paint);
+
+        Paint paintOutLine = new Paint();
+        paintOutLine.setStyle(Paint.Style.STROKE);
+        canvas.drawCircle(ballCenterX, ballCenterY, ballRadius, paintOutLine);
+    }
+
+    /*
     @Override
     protected void onDraw ( Canvas canvas){
         Log.d("ball", "2");
-        super.onDraw(canvas);
-        /*
-        if(win == true){
-            Paint paintti = new Paint();
-            paintti.setColor(Color.GREEN);
-            paintti.setTextSize(62);
-            canvas.drawText("Voitit pelin", 400, 200, paintti);
-        }*/
-        /*
-        Paint paintRect = new Paint();
-        paintRect.setStyle(Paint.Style.FILL);
-        paintRect.setColor(Color.BLACK);
-        canvas.drawRect( 350, 0, 750, 25, paintRect);
-        canvas.drawRect( 540, 350, 580, 1920, paintRect);
-        Paint paintRectNew = new Paint();
-        paintRectNew.setStyle(Paint.Style.FILL);
-        paintRectNew.setColor(Color.GREEN);
-        //canvas.drawRect(800, 950, 900, 1050, paintRectNew);
-        canvas.drawRect(825, 975, 875, 1025, paintRectNew);
-        */
+        //super.onDraw(canvas);
+
 
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
@@ -102,11 +97,11 @@ class Ball extends View implements View.OnTouchListener{
         paintOutLine.setStyle(Paint.Style.STROKE);
         canvas.drawCircle(ballCenterX, ballCenterY, ballRadius, paintOutLine);
 
-        Update();
+        //Update();
 
         invalidate();
 
-    }
+    }*/
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {

@@ -1,6 +1,5 @@
 package football.game;
 
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,7 +9,10 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+
 public class FootballGame extends View implements View.OnTouchListener{
+
+    //Display d = ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
     int ballCenterX = 200;
     int ballCenterY = 1000;
@@ -40,6 +42,7 @@ public class FootballGame extends View implements View.OnTouchListener{
         super.onDraw(canvas);
         Log.d("football", "1");
         //ball.invalidate();
+        ball.Draw(canvas);
 
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
@@ -119,3 +122,35 @@ public class FootballGame extends View implements View.OnTouchListener{
         return true;
     }
 }
+
+
+/*
+class FootballGame implements Runnable {
+    long minPrime = 0;
+    FootballGame(long minPrime) {
+        this.minPrime = minPrime;
+    }
+
+    public void run() {
+        // compute primes larger than minPrime
+        public FootballGame(Context context, AttributeSet attributeSet) {
+            super(context, attributeSet);
+            this.setOnTouchListener(this);
+            Paint paint = new Paint();
+        }
+
+        protected void onDraw(Canvas canvas){
+            super.onDraw(canvas);
+            Log.d("football", "1");
+            ball.invalidate();
+
+            Paint paint = new Paint();
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(Color.BLUE);
+
+            canvas.drawCircle(620, 620, 21, paint);
+
+        }
+    }
+}
+*/

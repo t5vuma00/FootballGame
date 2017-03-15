@@ -6,7 +6,8 @@ import android.os.Bundle;
 
 public class gameActivity extends AppCompatActivity {
 
-    Ball ball;
+    //Ball ball;
+    //FootballGame fGame;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
