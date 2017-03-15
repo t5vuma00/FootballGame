@@ -14,18 +14,13 @@ public class FootballGame extends View implements View.OnTouchListener{
 
     //Display d = ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
-    int ballCenterX = 200;
-    int ballCenterY = 1000;
     int ballSpeedX = 0;
     int ballSpeedY = 0;
-    int ballRadius = 62;
 
     float startX = 0;
     float startY = 0;
     float endX = 0;
     float endY = 0;
-
-    boolean win =false;
 
     float previousX = 0;
     float previousY = 0;
@@ -36,13 +31,14 @@ public class FootballGame extends View implements View.OnTouchListener{
         super(context, attributeSet);
         this.setOnTouchListener(this);
         Paint paint = new Paint();
+        ball = new Ball(context, attributeSet);
     }
 
     protected void onDraw(Canvas canvas){
         super.onDraw(canvas);
         Log.d("football", "1");
         //ball.invalidate();
-        ball.Draw(canvas);
+        ball.draw(canvas);
 
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
@@ -58,37 +54,21 @@ public class FootballGame extends View implements View.OnTouchListener{
         if(ballSpeedX == 0 && ballSpeedY == 0){
 
             float change = 0;
-            String xTesti = "";
-            String yTesti = "";
 
             switch (event.getAction()){
 
                 case MotionEvent.ACTION_DOWN:
                     startX = event.getX();
                     startY = event.getY();
-                    xTesti = Float.toString(startX);
-                    yTesti = Float.toString(startY);
 
-                    Log.d("painoit X", xTesti);
-                    Log.d("painoit Y", yTesti);
 
                 case MotionEvent.ACTION_UP:
                     endX = event.getX();
                     endY = event.getY();
-                    xTesti = Float.toString(endX);
-                    yTesti = Float.toString(endY);
-                    Log.d("Nostit X", xTesti);
-                    Log.d("Nostit Y", yTesti);
 
             }
             float changeX = endX - startX;
             float changeY = endY - startY;
-
-            String muutosX = Float.toString(endX);
-            String muutosY = Float.toString(endY);
-
-            Log.d("Muutos X", muutosX);
-            Log.d("Muutos Y", muutosY);
 
 
             if (Math.abs(changeX) < 100 && Math.abs(changeX) >= 50 || Math.abs(changeY) < 100 && Math.abs(changeY) >= 50){
@@ -115,6 +95,8 @@ public class FootballGame extends View implements View.OnTouchListener{
                 ballSpeedX = (int)changeX / 5;
                 ballSpeedY = (int)changeY / 5;
             }
+
+            ball.Update(ballSpeedX, ballSpeedY);
 
             invalidate();
         }
