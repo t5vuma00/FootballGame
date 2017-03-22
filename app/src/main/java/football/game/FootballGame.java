@@ -6,8 +6,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -19,29 +21,40 @@ import android.view.WindowManager;
 
 public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
-    //Display d = ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-
     SurfaceHolder holder;
     FootballGameThread footballGameThread;
+
     private Bitmap bitmapFootball;
+    private Bitmap bitmapPlayer1;
+    private Bitmap bitmapPlayer2;
+    private Bitmap bitmapBackgroundImage;
+
     private Bitmap bitmapJoystick;
     private Bitmap bitmapJoystick2;
 
     private AttributeSet attributeSet2;
 
-    Bitmap bitmap2;
-    //Canvas canvas;
-    //Bitmap mBitmap = Bitmap.createScaledBitmap(Bitmap src, int dstWidth, int dstHeight, boolean filter);
+    private int screenWidth = 0;
+    private int screenHeight = 0;
 
-    private int ballSpeedX = 0;
-    private int ballSpeedY = 0;
 
-    int ballCenterX = 400;
-    int ballCenterY = 400;
+    private double ballSpeedX = 0;
+    private double ballSpeedY = 0;
+
+    private int player1CenterX = 0;
+    private int player1CenterY = 0;
+
+    private double player1SpeedX = 0;
+    private double player1SpeedY = 0;
+
+    private int playerRadius = 0;
+
+    int ballCenterX = 0;
+    int ballCenterY = 0;
 
     int ballRadius = 52;
 
-    double gravity = 0.05;
+    double gravity = 0.5;
 
     float startX = 0;
     float startY = 0;
@@ -55,6 +68,16 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     float tekstiX = 0;
     float tekstiY = 0;
 
+    private long hitTime = 0;
+    private long lastHitTimeBallX = 0;
+    private long lastHitTimeBallY = 0;
+
+    private long lastHitTimePlayer1X = 0;
+    private long lastHitTimePlayer1Y = 0;
+
+    private long lastHitTimeBallAndPlayer1 = 0;
+    private long lastHitTimeBallAndPlayer2 = 0;
+
 
     Ball ball;
     Joystick joystick;
@@ -64,15 +87,31 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
     public FootballGame(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
+        //setWillNotDraw(false);
+        //Display d = ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+
+        //Katsotaan näytön koko
+        Display display = ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        screenWidth = size.x;
+        screenHeight = size.y;
 
         attributeSet2 = attributeSet;
-
         this.setOnTouchListener(this);
         //joystick = new Joystick(context, attributeSet);
         ball = new Ball(context, attributeSet);
         footballGameThread = new FootballGameThread(this);
+        //Määritellään pallon aloitus keskipiste
+        putStartCordinates();
+        //Määritellään kuvat
+        createBitmaps();
         holder = getHolder();
-        //bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.aurinko);
+        String testi = "";
+        testi = Integer.toString(screenWidth);
+        testi += " ";
+        testi += Integer.toString(screenHeight);
+        Log.d("football", testi);
         Log.d("football", "aloitus");
 
         holder.addCallback(new SurfaceHolder.Callback(){
@@ -103,12 +142,40 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                 }
             }
         });
-        bitmapFootball = BitmapFactory.decodeResource(getResources(), R.drawable.jalkapallo);
-        bitmapFootball = Bitmap.createScaledBitmap(bitmapFootball, 104, 104, true);
-        //bitmap2 = Bitmap.createScaledBitmap(bitmap, 1920, 1080, filter);
     }
 
-    protected void testi(){
+    public void putStartCordinates(){
+
+        player1CenterX = screenWidth / 10;
+        player1CenterY = screenHeight / 2;
+
+
+        ballCenterX = screenWidth / 2;
+        ballCenterY = screenHeight / 2;
+    }
+
+
+    public void createBitmaps(){
+        ballRadius = screenWidth / 40;
+
+        playerRadius = screenWidth / 20;
+
+        bitmapFootball = BitmapFactory.decodeResource(getResources(), R.drawable.jalkapallo);
+        bitmapFootball = Bitmap.createScaledBitmap(bitmapFootball, ballRadius * 2, ballRadius * 2, true);
+
+        bitmapPlayer1 = BitmapFactory.decodeResource(getResources(), R.drawable.pelaaja1);
+        bitmapPlayer1 = Bitmap.createScaledBitmap(bitmapPlayer1, playerRadius * 2, playerRadius * 2, true);
+
+        bitmapPlayer2 = BitmapFactory.decodeResource(getResources(), R.drawable.pelaaja2);
+        bitmapPlayer2 = Bitmap.createScaledBitmap(bitmapPlayer2, screenWidth / 10, screenWidth / 8, true);
+
+        bitmapBackgroundImage = BitmapFactory.decodeResource(getResources(), R.drawable.taustakuva);
+        bitmapBackgroundImage = Bitmap.createScaledBitmap(bitmapBackgroundImage, screenWidth, screenHeight, true);
+    }
+
+    //Päivittää pallon ja pelaajien sijainnit ja katsoo tapahtuuko törmäyksiä
+    protected void physics(){
+        hitTime = System.currentTimeMillis();
         /*
 
         joystickX = joystick.getX();
@@ -135,65 +202,125 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         }
         */
 
-        Log.d("hehehe", "hohoho");
+        //Log.d("hehehe", "hohoho");
+        //Hidastetaan palloa pikku hiljaa X suunnassa
         if(ballSpeedX > 0){
-            ballSpeedX -= 0.05;
+            ballSpeedX -= 0.1;
 
         }
         if(ballSpeedX < 0){
-            ballSpeedX += 0.05;
+            ballSpeedX += 0.1;
         }
+        //Pallon painovoima
         if(ballSpeedY < 20){
             ballSpeedY += gravity;
-            //gravity += 0.04;
         }
-        ballCenterX += ballSpeedX;
-        ballCenterY += ballSpeedY;
 
-        if(ballCenterX - ballRadius < 0 || ballCenterX + ballRadius > 1920  ){
-            ballSpeedX = -ballSpeedX;
+        //Hidastetaan pelaajia
+        if(player1SpeedX > 0){
+            player1SpeedX -= 0.1;
         }
-        if( ballCenterY - ballRadius < 0 || ballCenterY + ballRadius > 980){
-            ballSpeedY = -ballSpeedY;
+        if(player1SpeedX < 0){
+            player1SpeedX += 0.1;
+        }
+        //Pelaaja1 painovoima
+        if(player1SpeedY < 20){
+            player1SpeedY += gravity;
+        }
+
+        //Muutetaan pallon kohtaa nopeuden mukaan
+        ballCenterX += (int)ballSpeedX;
+        ballCenterY += (int)ballSpeedY;
+
+        //Muutetaan pelaajien kohta nopeuden mukaan
+        player1CenterX += (int)player1SpeedX;
+        player1CenterY += (int)player1SpeedY;
+
+        //Katsotaan osuuko pallo reunoille ja muutetaan ja hidastetaan vauhtia
+        if(ballCenterX - ballRadius < 0 && hitTime > lastHitTimeBallX+50 || ballCenterX + ballRadius > screenWidth && hitTime > lastHitTimeBallX+50  ){
+            lastHitTimeBallX = System.currentTimeMillis();
+            ballSpeedX = -(ballSpeedX*0.75);
+        }
+        //Katsotaan osuuko pallo pelin kattoon/maahan ja muutetaan ja hidastetaan vauhtia
+        if( ballCenterY - ballRadius < 0 && hitTime > lastHitTimeBallY+50 || ballCenterY + ballRadius > screenHeight *0.8 && hitTime > lastHitTimeBallY+50){
+            lastHitTimeBallY = System.currentTimeMillis();
+            ballSpeedY = -(ballSpeedY*0.75);
+        }
+
+        //Katsotaan osuuko pelaaja1 reunoille ja muutetaan ja hidastetaan vauhtia
+        if(player1CenterX - playerRadius < 0 && hitTime > lastHitTimePlayer1X+50 || player1CenterX + playerRadius > screenWidth && hitTime > lastHitTimePlayer1X+50  ){
+            lastHitTimePlayer1X = System.currentTimeMillis();
+            player1SpeedX = -(player1SpeedX*0.75);
+        }
+        //Katsotaan osuuko pelaaja pelin kattoon/maahan ja muutetaan ja hidastetaan vauhtia
+        if( player1CenterY - playerRadius < 0 && hitTime > lastHitTimePlayer1Y+50 || player1CenterY + playerRadius > screenHeight *0.8 && hitTime > lastHitTimePlayer1Y+50){
+            lastHitTimePlayer1Y = System.currentTimeMillis();
+            player1SpeedY = -(player1SpeedY*0.75);
+        }
+
+        //Jos peliin tulee bugi ja  pallo menee laitojen yli niin laitetaan pallo keskelle
+        if(ballCenterX > screenWidth + 200 || ballCenterY > screenHeight + 200){
+            ballCenterX = screenWidth / 2;
+            ballCenterY = screenHeight / 2;
+            ballSpeedX = 0;
+            ballSpeedY = 0;
+        }
+
+        //Katsotaan osuuko pelaaja palloon
+        if(((((player1CenterX+playerRadius > ballCenterX - ballRadius && player1CenterX +playerRadius < ballCenterX + ballRadius) ||
+                (player1CenterX-playerRadius < ballCenterX + ballRadius && player1CenterX -playerRadius > ballCenterX - ballRadius)) &&
+                ((player1CenterY + playerRadius > ballCenterY - ballRadius && player1CenterY +playerRadius < ballCenterY + ballRadius) ||
+                        (player1CenterY-playerRadius < ballCenterY + ballRadius && player1CenterY -playerRadius > ballCenterY - ballRadius)))
+        && hitTime > lastHitTimeBallAndPlayer1+50)){
+            lastHitTimeBallAndPlayer1 = System.currentTimeMillis();
+            ballSpeedX = player1SpeedX * 2;
+            ballSpeedY = player1SpeedY * 2;
         }
         /*
-        if (ballCenterY + ballRadius < 0){
-            ballSpeedY = -ballSpeedY;
-            ballSpeedY = 0;
+        if(player1CenterX + playerRadius >= ballCenterX - ballRadius && player1CenterX + playerRadius <= ballCenterX + ballRadius &&
+        player1CenterY + playerRadius >= ballCenterY - ballRadius && player1CenterY + playerRadius <= ballCenterY + ballRadius
+                && hitTime > lastHitTimeBallAndPlayer1 + 50 ){
+            lastHitTimeBallAndPlayer1 = System.currentTimeMillis();
+            ballSpeedX = player1SpeedX * 2;
+            ballSpeedY = player1SpeedY * 2;
+        }*/
+
+        /*
+        if(player1CenterX - playerRadius <= ballCenterX + ballRadius && player1CenterX - playerRadius >= ballCenterX - ballRadius &&
+        player1CenterY - playerRadius <= ballCenterY + ballRadius && player1CenterY - playerRadius >= ballCenterY - ballRadius
+                && hitTime > lastHitTimeBallAndPlayer1 + 50){
+            lastHitTimeBallAndPlayer1 = System.currentTimeMillis();
+            ballSpeedX = player1SpeedX * 2;
+            ballSpeedY = player1SpeedY * 2;
+        }*/
+        /*
+        if(player1CenterY + playerRadius >= ballCenterY - ballRadius && player1CenterY + playerRadius <= ballCenterY + ballRadius){
+            ballSpeedY = player1SpeedY * 2;
+        }
+
+        if(player1CenterY - playerRadius <= ballCenterY + ballRadius && player1CenterY - playerRadius >= ballCenterY - ballRadius){
+            ballSpeedY = player1SpeedY * 2;
         }*/
 
 
     }
-    //Bitmap scaledBitmap = scaleDown(realImage, MAX_IMAGE_SIZE, true);
 
-    public static Bitmap scaleDown(Bitmap realImage, float maxImageSize,
-                                   boolean filter) {
-        //realImage = R.drawable.aurinko;
-        /*
-        float ratio = Math.min(
-                (float) maxImageSize / realImage.getWidth(),
-                (float) maxImageSize / realImage.getHeight());
-        int width = Math.round((float) ratio * realImage.getWidth());
-        int height = Math.round((float) ratio * realImage.getHeight());*/
-
-        Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, 1920,
-                1080, filter);
-        return newBitmap;
-    }
 
 
     @Override
     protected void onDraw(Canvas canvas){
 
         super.onDraw(canvas);
+
+        canvas.drawBitmap(bitmapBackgroundImage, 0, 0, null);
         //Log.d("football", "piirretaan");
         //ball.invalidate();
-        ball.draw(canvas);
-        canvas.drawColor(Color.GRAY);
+        //ball.draw(canvas);
+        //canvas.drawColor(Color.GRAY);
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
         paint.setTextSize(38);
-        paint.setColor(Color.CYAN);
+        paint.setColor(Color.YELLOW);
 
         canvas.drawText(teksti, tekstiX, tekstiY, paint);
         /*
@@ -204,17 +331,28 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
         canvas.drawCircle(ballCenterX, ballCenterY, ballRadius, paint);*/
 
+        //Piirretään jalkapallo
         canvas.drawBitmap(bitmapFootball, ballCenterX, ballCenterY, null);
+
+        //Piirretään pelaajat
+        canvas.drawBitmap(bitmapPlayer1, player1CenterX, player1CenterY, null);
+        //canvas.drawBitmap(bitmapPlayer2, ballCenterX+150, ballCenterY, null);
 
 
     }
+    /*
+    @Override
+    public void onBackPressed(){
+
+
+        Log.d("football", "painoit back");
+    }*/
 
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
 
         Log.d("football", "kosketeltiin näyttoa");
-
 
             switch (event.getAction()){
 
@@ -240,16 +378,16 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
 
             if (Math.abs(changeX) < 100 && Math.abs(changeX) >= 50 || Math.abs(changeY) < 100 && Math.abs(changeY) >= 50){
-                ballSpeedX = (int)changeX / 10;
-                ballSpeedY = (int)changeY / 10;
+                player1SpeedX = (int)changeX / 10;
+                player1SpeedY = (int)changeY / 10;
             }
             else if(Math.abs(changeX) >= 100 && Math.abs(changeX) < 300 || Math.abs(changeY) >= 100 && Math.abs(changeY) < 300 ){
-                ballSpeedX = (int)changeX / 20;
-                ballSpeedY = (int)changeY / 20;
+                player1SpeedX = (int)changeX / 20;
+                player1SpeedY = (int)changeY / 20;
             }
             else{
-                ballSpeedX = (int)changeX / 5;
-                ballSpeedY = (int)changeY / 5;
+                player1SpeedX = (int)changeX / 5;
+                player1SpeedY = (int)changeY / 5;
             }
 
             //ball.Update(ballSpeedX, ballSpeedY);
@@ -323,3 +461,19 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
 }
 
+/*
+    public static Bitmap scaleDown(Bitmap realImage, float maxImageSize,
+                                   boolean filter) {
+        //realImage = R.drawable.aurinko;
+        /*
+        float ratio = Math.min(
+                (float) maxImageSize / realImage.getWidth(),
+                (float) maxImageSize / realImage.getHeight());
+        int width = Math.round((float) ratio * realImage.getWidth());
+        int height = Math.round((float) ratio * realImage.getHeight());
+
+    Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, 1920,
+            1080, filter);
+        return newBitmap;
+                }
+ */

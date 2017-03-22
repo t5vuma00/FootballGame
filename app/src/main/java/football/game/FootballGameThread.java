@@ -31,7 +31,7 @@ public class FootballGameThread extends Thread {
             Canvas canvas = null;
             startTime = System.currentTimeMillis();
 
-            view.testi();
+            view.physics();
 
             try {
                 //Start editing pixels in the surface
