@@ -29,7 +29,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     private Bitmap bitmapPlayer2;
     private Bitmap bitmapBackgroundImage;
 
-    private Bitmap bitmapJoystick;
+    private Bitmap bitmapJoystick1;
     private Bitmap bitmapJoystick2;
 
     private AttributeSet attributeSet2;
@@ -49,10 +49,15 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
     private int playerRadius = 0;
 
-    int ballCenterX = 0;
-    int ballCenterY = 0;
+    private int ballCenterX = 0;
+    private int ballCenterY = 0;
 
-    int ballRadius = 52;
+    private int ballRadius = 52;
+
+    private int joystick1CenterX = 0;
+    private int joystick1CenterY = 0;
+
+    private int joystickRadius = 0;
 
     double gravity = 0.5;
 
@@ -63,6 +68,9 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
     float joystickX = 0;
     float joystickY = 0;
+
+    float x = 0;
+    float y = 0;
 
     String teksti = "";
     float tekstiX = 0;
@@ -146,19 +154,33 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
     public void putStartCordinates(){
 
+        ballRadius = screenWidth / 40;
+
+        playerRadius = screenWidth / 20;
+
+        joystickRadius = screenWidth / 15;
+
         player1CenterX = screenWidth / 10;
+        //player1CenterX += playerRadius;
         player1CenterY = screenHeight / 2;
+        //player1CenterY += playerRadius;
 
 
         ballCenterX = screenWidth / 2;
+        ballCenterX += ballRadius;
         ballCenterY = screenHeight / 2;
+        ballCenterY += ballRadius;
+
+        joystick1CenterX = screenWidth / 8;
+        //joystick1CenterX += joystickRadius;
+        joystick1CenterY = (int)((double)screenHeight * 0.7);
+        //joystick1CenterY += joystickRadius;
+
+
     }
 
 
     public void createBitmaps(){
-        ballRadius = screenWidth / 40;
-
-        playerRadius = screenWidth / 20;
 
         bitmapFootball = BitmapFactory.decodeResource(getResources(), R.drawable.jalkapallo);
         bitmapFootball = Bitmap.createScaledBitmap(bitmapFootball, ballRadius * 2, ballRadius * 2, true);
@@ -171,6 +193,10 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
         bitmapBackgroundImage = BitmapFactory.decodeResource(getResources(), R.drawable.taustakuva);
         bitmapBackgroundImage = Bitmap.createScaledBitmap(bitmapBackgroundImage, screenWidth, screenHeight, true);
+
+        bitmapJoystick1 = BitmapFactory.decodeResource(getResources(), R.drawable.sintausta);
+        //bitmapJoystick1 = Bitmap.createScaledBitmap(bitmapJoystick1, joystickRadius * 2, joystickRadius * 2, true);
+        bitmapJoystick1 = Bitmap.createScaledBitmap(bitmapJoystick1, joystickRadius * 2, joystickRadius * 2, true);
     }
 
     //Päivittää pallon ja pelaajien sijainnit ja katsoo tapahtuuko törmäyksiä
@@ -332,12 +358,17 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         canvas.drawCircle(ballCenterX, ballCenterY, ballRadius, paint);*/
 
         //Piirretään jalkapallo
-        canvas.drawBitmap(bitmapFootball, ballCenterX, ballCenterY, null);
+        canvas.drawBitmap(bitmapFootball, ballCenterX-ballRadius, ballCenterY-ballRadius, null);
 
         //Piirretään pelaajat
-        canvas.drawBitmap(bitmapPlayer1, player1CenterX, player1CenterY, null);
+        canvas.drawBitmap(bitmapPlayer1, player1CenterX-playerRadius, player1CenterY-playerRadius, null);
         //canvas.drawBitmap(bitmapPlayer2, ballCenterX+150, ballCenterY, null);
 
+        //Piirretään joystickit
+        canvas.drawBitmap(bitmapJoystick1, joystick1CenterX-joystickRadius, joystick1CenterY-joystickRadius, null);
+        //canvas.drawBitmap(bitmapJoystick1, player1CenterX, player1CenterY, null);
+
+        //canvas.drawBitmap(bitmapJoystick1, ballCenterX, ballCenterY, null);
 
     }
     /*
@@ -352,11 +383,38 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     @Override
     public boolean onTouch(View v, MotionEvent event) {
 
-        Log.d("football", "kosketeltiin näyttoa");
+        //Log.d("football", "kosketeltiin näyttoa");
 
             switch (event.getAction()){
 
+
                 case MotionEvent.ACTION_DOWN:
+
+                    x = event.getX();
+                    y = event.getY();
+
+                    if(x < joystick1CenterX + joystickRadius  && x > joystick1CenterX && y > joystick1CenterY - joystickRadius && y < joystick1CenterY){
+                        Log.d("kosketeltiin", "nopeutetaan");
+                        player1SpeedY -= 5;
+                        player1SpeedX += 5;
+                    }
+                    if(x > joystick1CenterX - joystickRadius  && x < joystick1CenterX && y > joystick1CenterY - joystickRadius && y < joystick1CenterY){
+                        Log.d("kosketeltiin", "hidastetaan");
+                        player1SpeedY -= 5;
+                        player1SpeedX -= 5;
+                    }
+                    if(x > joystick1CenterX - joystickRadius  && x < joystick1CenterX && y < joystick1CenterY + joystickRadius && y > joystick1CenterY){
+                        Log.d("kosketeltiin", "nopeutetaan");
+                        player1SpeedY += 5;
+                        player1SpeedX -= 5;
+                    }
+                    if(x < joystick1CenterX + joystickRadius  && x > joystick1CenterX && y < joystick1CenterY + joystickRadius && y > joystick1CenterY){
+                        Log.d("kosketeltiin", "nopeutetaan");
+                        player1SpeedY += 5;
+                        player1SpeedX += 5;
+                    }
+
+
                     tekstiX = event.getX();
                     tekstiY = event.getY();
 
@@ -367,12 +425,16 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                     startX = event.getX();
                     startY = event.getY();
 
+                //case MotionEvent.ACTION_POINTER_DOWN:
+
+
 
                 case MotionEvent.ACTION_UP:
                     endX = event.getX();
                     endY = event.getY();
 
             }
+            /*
             float changeX = endX - startX;
             float changeY = endY - startY;
 
@@ -388,7 +450,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
             else{
                 player1SpeedX = (int)changeX / 5;
                 player1SpeedY = (int)changeY / 5;
-            }
+            }*/
 
             //ball.Update(ballSpeedX, ballSpeedY);
 
