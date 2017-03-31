@@ -1,6 +1,8 @@
 package football.game;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -10,8 +12,10 @@ import android.view.View;
 
 class Ball extends View{
 
+    private Bitmap bitmapFootball;
+
     int ballCenterX = 200;
-    int ballCenterY = 1000;
+    int ballCenterY = 500;
     int ballSpeedX = 0;
     int ballSpeedY = 0;
     int ballRadius = 62;
@@ -28,7 +32,9 @@ class Ball extends View{
 
     public Ball(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
-        Paint paint = new Paint();
+        //Paint paint = new Paint();
+        bitmapFootball = BitmapFactory.decodeResource(getResources(), R.drawable.jalkapallo);
+        bitmapFootball= Bitmap.createScaledBitmap(bitmapFootball, ballRadius * 2, ballRadius * 2, true);
     }
 
 
@@ -56,6 +62,8 @@ class Ball extends View{
         paint.setColor(Color.BLUE);
 
         canvas.drawCircle(700, 800, 62, paint);
+
+        canvas.drawBitmap(bitmapFootball, ballCenterX, ballCenterY, null);
 
         //canvas.drawCircle(ballCenterX, ballCenterY, ballRadius, paint);
         /*

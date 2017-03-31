@@ -36,6 +36,7 @@ public class FootballGameThread extends Thread {
             try {
                 //Start editing pixels in the surface
                 canvas = view.getHolder().lockCanvas();
+
                 synchronized (view.getHolder()) {
                     //Kutsuu ondraw eli piirtää kaikki tarvittavat
                     //view.draw(canvas);
