@@ -33,7 +33,7 @@ class Ball extends View{
     public Ball(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
         //Paint paint = new Paint();
-        bitmapFootball = BitmapFactory.decodeResource(getResources(), R.drawable.jalkapallo);
+        bitmapFootball = BitmapFactory.decodeResource(getResources(), R.drawable.football);
         bitmapFootball= Bitmap.createScaledBitmap(bitmapFootball, ballRadius * 2, ballRadius * 2, true);
     }
 

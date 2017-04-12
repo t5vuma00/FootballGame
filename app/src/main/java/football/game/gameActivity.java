@@ -1,64 +1,78 @@
 package football.game;
 
-import android.app.ActionBar;
+import android.content.ComponentName;
 import android.content.Context;
-import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.util.AttributeSet;
+import android.os.IBinder;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
-
-import static java.lang.Thread.sleep;
 
 public class gameActivity extends AppCompatActivity {
 
-    //FootballGame footballGame;
+    Intent bgMusic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         //Piilottaa sovelluksen nimen
-        getSupportActionBar().hide();
-        //getActionBar().hide();
+        if(getSupportActionBar() != null){
+            getSupportActionBar().hide();
+        }
+        //Piilottaa notification barin
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-
-        /*
-        // Asetetaan peli kokonäyttötilaan
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        // Poistaa titlen näkyvistä
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);*/
-        //setContentView(R.layout.activity_game);
         setContentView(new FootballGame(this, null));
+
+        bgMusic = new Intent(this, backgroundAudioHandler.class);
+        bgMusic.putExtra("audio", "inGameMusic");
+        bindService(bgMusic, mServerConn, Context.BIND_AUTO_CREATE);
     }
+
+    protected ServiceConnection mServerConn = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
 
     @Override
     public void onBackPressed(){
 
         FootballGameThread footballGameThread =  new FootballGameThread(null);
         footballGameThread.setRunning(false);
-        /*
-        try {
-            sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }*/
-        /*
-        FootballGame footballGame = new FootballGame(this, null);
-        if(footballGame.holder != null){
-            footballGame.holder.removeCallback(null);
-            finish();
-        }*/
-        //footballGame.view.is
-        //footballGame.getHolder().unlockCanvasAndPost(null);
-        //footballGame.getHolder().removeCallback();
+        stopService(bgMusic);
+
         Log.d("gameActivity", "onbackpressed");
         super.onBackPressed();
+        finish();
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        stopService(bgMusic);
+
+        FootballGameThread footballGameThread =  new FootballGameThread(null);
+        footballGameThread.setRunning(false);
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        stopService(bgMusic);
+
+        Log.d("gDestroy", "gDestroy");
+
     }
 }
 

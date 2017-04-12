@@ -7,8 +7,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.graphics.PointF;
-import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
@@ -16,7 +14,6 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 
 //implements View.OnTouchListener
@@ -26,6 +23,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     SurfaceHolder holder;
     FootballGameThread footballGameThread;
 
+    //Pelissä käytetyt kuvat
     private Bitmap bitmapFootball;
     private Bitmap bitmapPlayer1;
     private Bitmap bitmapPlayer2;
@@ -34,21 +32,24 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     private Bitmap bitmapGoalLeft;
     private Bitmap bitmapGoalRight;
 
+    private Bitmap bitmapGoalTextBlue;
+    private Bitmap bitmapGoalTextRed;
+
     private Bitmap bitmapJoystick1;
     private Bitmap bitmapJoystick2;
 
+    //Pelaajan näytön koko
     private int screenWidth = 0;
     private int screenHeight = 0;
 
     private int gameAreaMinX = 0;
     private int gameAreaMinY = 0;
-
     private int gameAreaMaxX = 0;
     private int gameAreaMaxY = 0;
 
-
+    //Hahmojen ja pallon keskipisteet ja nopeudet
     private double ballSpeedX = 0;
-    private double ballSpeedY = 0;
+    private double ballSpeedY = 1;
 
     private int player1CenterX = 0;
     private int player1CenterY = 0;
@@ -57,15 +58,15 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     private int player2CenterY = 0;
 
     private double player1SpeedX = 0;
-    private double player1SpeedY = 0;
+    private double player1SpeedY = 1;
 
     private double player2SpeedX = 0;
-    private double player2SpeedY = 0;
+    private double player2SpeedY = 1;
 
-    private int playerMaxSpeed = 20;
+    private int PLAYER_MAX_SPEED = 20;
+    private int BALL_MAX_SPEED = 40;
     private int increasePlayerSpeed = 5;
-    //private int playerMaxSpeed = 20;
-
+    private double increaseBallSpeed = 0.5;
 
     private int playerRadius = 0;
 
@@ -95,6 +96,13 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
     private Paint paintText;
     private String score;
+    private int scoreTextSize = 0;
+
+    private int goalTextX = 0;
+    private int goalTextY = 0;
+
+    private boolean goalTextRed = false;
+    private boolean goalTextBlue = false;
 
     private int textX = 0;
     private int textY = 0;
@@ -102,39 +110,16 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     double friction = 0;
     double gravity = 0;
 
-    float startX = 0;
-    float startY = 0;
-    float endX = 0;
-    float endY = 0;
-
-    float joystickX = 0;
-    float joystickY = 0;
-
-    float x = 0;
-    float y = 0;
-
-    String teksti = "";
-    float tekstiX = 0;
-    float tekstiY = 0;
-
     private long hitTime = 0;
-    private long lastHitTimeBallX = 0;
-    private long lastHitTimeBallY = 0;
+    private long scoreTime = 0;
 
-    private long lastHitTimePlayer1X = 0;
-    private long lastHitTimePlayer1Y = 0;
-
-    private long lastHitTimePlayer2X = 0;
-    private long lastHitTimePlayer2Y = 0;
-
-    private long lastHitTimeBallAndPlayer1 = 0;
-    private long lastHitTimeBallAndPlayer2 = 0;
-
-    private static PointF touchOnScreen[] = new PointF[10];
 
 
     Ball ball;
-    Joystick joystick;
+
+    simpleJoystick player1Joystick;
+    simpleJoystick player2Joystick;
+
 
     View view;
     //AttributeSet attributeSet
@@ -153,8 +138,11 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
         //attributeSet2 = attributeSet;
         this.setOnTouchListener(this);
-        //joystick = new Joystick(context, attributeSet);
         ball = new Ball(context, attributeSet);
+
+        player1Joystick = new simpleJoystick(context, attributeSet);
+        player2Joystick = new simpleJoystick(context, attributeSet);
+
         footballGameThread = new FootballGameThread(this);
         //Määritellään arvot näytölle sopiviksi
         setScaledValues();
@@ -210,10 +198,17 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         gameAreaMinY = 0;
 
         gameAreaMaxX = screenWidth;
-        gameAreaMaxY = (int)(screenHeight * 0.8);
+        gameAreaMaxY = (int)(screenHeight * 0.85);
 
-        gravity = (double)screenHeight / ((double)screenHeight * 2);
-        friction = (double)screenWidth / ((double)screenHeight * 6);
+        PLAYER_MAX_SPEED = screenWidth / 75;
+        BALL_MAX_SPEED = screenWidth / 50;
+        increasePlayerSpeed = screenWidth / 400;
+        increaseBallSpeed = (double)screenWidth / 4000;
+
+        //gravity = (double)screenHeight / ((double)screenHeight * 2);
+        gravity = (double)screenHeight / 1500;
+        //friction = (double)screenWidth / ((double)screenHeight * 6);
+        friction = (double)screenWidth / 10000;
 
         ballRadius = screenWidth / 40;
         playerRadius = screenWidth / 20;
@@ -221,6 +216,9 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
         goalWidth = (int)((double)screenWidth * 0.13);
         goalHeight = (int)((double)screenHeight * 0.45);
+
+        scoreTextSize = screenHeight / 14;
+
     }
 
     //Laitetaan kaikki esineet ja pelaajat oikealle paikalle
@@ -235,37 +233,58 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         ballCenterX = screenWidth / 2;
         ballCenterY = screenHeight / 2;
 
-        joystick1CenterX = (int)((double)screenWidth * 0.2);
-        joystick1CenterY = (int)((double)screenHeight * 0.78);
+        //joystick1CenterX = (int)((double)screenWidth * 0.2);
+        joystick1CenterX = (int)((double)screenWidth * 0.15);
+        joystick1CenterY = (int)((double)screenHeight * 0.82);
 
-        joystick2CenterX = (int)((double)screenWidth * 0.8);
-        joystick2CenterY = (int)((double)screenHeight * 0.78);
+        //joystick2CenterX = (int)((double)screenWidth * 0.8);
+        joystick2CenterX = (int)((double)screenWidth * 0.85);
+        joystick2CenterY = (int)((double)screenHeight * 0.82);
+
+        player1Joystick.setJoystickCenterX(joystick1CenterX);
+        player1Joystick.setJoystickCenterY(joystick1CenterY);
+        player1Joystick.setJoystickRadius(joystickRadius);
+        player1Joystick.setColor("RED");
+        player1Joystick.setOffset(joystickRadius /2);
+
+        player2Joystick.setJoystickCenterX(joystick2CenterX);
+        player2Joystick.setJoystickCenterY(joystick2CenterY);
+        player2Joystick.setJoystickRadius(joystickRadius);
+        player2Joystick.setColor("BLUE");
+        player2Joystick.setOffset(joystickRadius /2);
+
+        //joystick1CenterY = (int)((double)screenHeight * 0.78);
 
         goalLeftX = gameAreaMinX;
-        goalLeftY = (int)((double)screenWidth * 0.2);
+        goalLeftY = (int)((double)screenWidth * 0.25);
 
         goalRightX = gameAreaMaxX - goalWidth;
-        goalRightY = (int)((double)screenWidth * 0.2);
+        goalRightY = (int)((double)screenWidth * 0.25);
+
+        goalTextX = (screenWidth / 2) - (screenWidth / 10);
+        goalTextY = screenHeight / 5;
     }
 
     public void setText(){
-        textX = (int)((double)screenWidth * 0.5);
-        textY = (int)((double)screenHeight * 0.2);
+        textX = (int)((double)screenWidth * 0.505);
+        textY = (int)((double)screenHeight * 0.095);
 
         score = Integer.toString(player1Score);
-        score += " - ";
+        //Kolme välilyöntiä
+        score += "   ";
         score += Integer.toString(player2Score);
 
         paintText =  new Paint();
         paintText.setStyle(Paint.Style.FILL_AND_STROKE);
         paintText.setTextAlign(Paint.Align.CENTER);
-        paintText.setTextSize(158);
-        paintText.setColor(Color.BLACK);
+        paintText.setTextSize(scoreTextSize);
+        paintText.setColor(Color.WHITE);
     }
 
     public void updateScore(){
         score = Integer.toString(player1Score);
-        score += " - ";
+        //Kolme välilyöntiä
+        score += "   ";
         score += Integer.toString(player2Score);
     }
 
@@ -284,22 +303,22 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     //Luodaan kaikki kuvat joita aletaan piirtämään näytölle
     public void createBitmaps(){
 
-        bitmapFootball = BitmapFactory.decodeResource(getResources(), R.drawable.jalkapallo);
+        bitmapFootball = BitmapFactory.decodeResource(getResources(), R.drawable.football);
         bitmapFootball = Bitmap.createScaledBitmap(bitmapFootball, ballRadius * 2, ballRadius * 2, true);
 
-        bitmapPlayer1 = BitmapFactory.decodeResource(getResources(), R.drawable.pelaaja1);
+        bitmapPlayer1 = BitmapFactory.decodeResource(getResources(), R.drawable.character3);
         bitmapPlayer1 = Bitmap.createScaledBitmap(bitmapPlayer1, playerRadius * 2, playerRadius * 2, true);
 
-        bitmapPlayer2 = BitmapFactory.decodeResource(getResources(), R.drawable.pelaaja2);
+        bitmapPlayer2 = BitmapFactory.decodeResource(getResources(), R.drawable.character4);
         bitmapPlayer2 = Bitmap.createScaledBitmap(bitmapPlayer2, playerRadius * 2, playerRadius * 2, true);
 
-        bitmapBackgroundImage = BitmapFactory.decodeResource(getResources(), R.drawable.background2);
+        bitmapBackgroundImage = BitmapFactory.decodeResource(getResources(), R.drawable.backgroundcity);
         bitmapBackgroundImage = Bitmap.createScaledBitmap(bitmapBackgroundImage, screenWidth, screenHeight, true);
 
-        bitmapGoalLeft = BitmapFactory.decodeResource(getResources(), R.drawable.goalleft);
+        bitmapGoalLeft = BitmapFactory.decodeResource(getResources(), R.drawable.goal);
         bitmapGoalLeft = Bitmap.createScaledBitmap(bitmapGoalLeft, goalWidth, goalHeight, true);
 
-        bitmapGoalRight = BitmapFactory.decodeResource(getResources(), R.drawable.goalright);
+        bitmapGoalRight = BitmapFactory.decodeResource(getResources(), R.drawable.goal);
         bitmapGoalRight = Bitmap.createScaledBitmap(bitmapGoalRight, goalWidth, goalHeight, true);
 
         bitmapJoystick1 = BitmapFactory.decodeResource(getResources(), R.drawable.joystick1);
@@ -308,6 +327,11 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         bitmapJoystick2 = BitmapFactory.decodeResource(getResources(), R.drawable.joystick2);
         bitmapJoystick2= Bitmap.createScaledBitmap(bitmapJoystick2, joystickRadius * 2, joystickRadius * 2, true);
 
+        bitmapGoalTextBlue = BitmapFactory.decodeResource(getResources(), R.drawable.goaltextblue);
+        bitmapGoalTextBlue = Bitmap.createScaledBitmap(bitmapGoalTextBlue, screenWidth / 5, screenHeight / 5, true);
+
+        bitmapGoalTextRed = BitmapFactory.decodeResource(getResources(), R.drawable.goaltextred);
+        bitmapGoalTextRed = Bitmap.createScaledBitmap(bitmapGoalTextRed, screenWidth / 5, screenHeight / 5, true);
     }
 
     //Päivittää pallon ja pelaajien sijainnit ja katsoo tapahtuuko törmäyksiä
@@ -332,6 +356,26 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         double player2TopY = player2CenterY - playerRadius;
         double player2BottomY = player2CenterY + playerRadius;
 
+
+
+        //Pallon sivut + nopeudet
+        double ballRightTotal = ballCenterX + ballRadius + ballSpeedX;
+        double ballLeftTotal = ballCenterX - ballRadius + ballSpeedX;
+        double ballTopTotal = ballCenterY - ballRadius + ballSpeedY;
+        double ballBottomTotal = ballCenterY + ballRadius + ballSpeedY;
+
+        //Pelaaja1:n sivut + nopeudet
+        double player1RightTotal = player1CenterX + playerRadius + player1SpeedX;
+        double player1LeftTotal = player1CenterX - playerRadius + player1SpeedX;
+        double player1TopTotal = player1CenterY - playerRadius + player1SpeedY;
+        double player1BottomTotal = player1CenterY + playerRadius + player1SpeedY;
+
+        //Pelaaja2:n sivut + nopeus
+        double player2RightTotal = player2CenterX + playerRadius + player2SpeedX;
+        double player2LeftTotal = player2CenterX - playerRadius + player2SpeedX;
+        double player2TopTotal = player2CenterY - playerRadius + player2SpeedY;
+        double player2BottomTotal = player2CenterY + playerRadius + player2SpeedY;
+
         physicsFriction();
         //moveBallAndPlayers();
         //physicsWallCollisions();
@@ -340,7 +384,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
         //Muutetaan pallon kohtaa nopeuden mukaan jos se ei mene reunojen yli
         //Pallo X-akselilla
-        if(ballLeftX + ballSpeedX > gameAreaMinX && ballRightX + ballSpeedX < gameAreaMaxX){
+        if(ballLeftTotal > gameAreaMinX && ballRightTotal < gameAreaMaxX){
             ballCenterX += (int)ballSpeedX;
         }
         else{
@@ -351,21 +395,23 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
         //Pallo y-akselilla laitetaan pelaajan säde, jotta pelaajat ja pallot on samalla korkeudella
         //Pallo y-akselilla
-        if(ballTopY + ballSpeedY > 0 && ballBottomY + ballSpeedY < gameAreaMaxY){
+        if(ballTopTotal > 0 && ballBottomTotal < gameAreaMaxY){
             //Pallo osuu vasemman maalin ylärimaan
-            if(goalLeftX + goalWidth > ballCenterX + ballSpeedX  && goalLeftY < ballBottomY + ballSpeedY
-                     && ballBottomY + ballSpeedY < goalLeftY + (int)((double)goalHeight *0.1)){
+            if(goalLeftX + goalWidth > ballCenterX + ballSpeedX  && goalLeftY < ballBottomTotal
+                     && ballBottomTotal < goalLeftY + (int)((double)goalHeight *0.1)){
                 ballSpeedY = ballSpeedY * -0.75;
                 //ballSpeedY = -ballSpeedY;
-                ballSpeedX += 8;
+                //Otetaan pallo pois maalin ylärimasta
+                ballSpeedX += increaseBallSpeed * 15;
                 ballCenterY += ballSpeedY;
             }
             //Pallo osuu oikean maalin ylärimaan
-            else if (goalRightX < ballCenterX + ballSpeedX  && goalRightY < ballBottomY + ballSpeedY
-                    && ballBottomY + ballSpeedY < goalRightY + (int)((double)goalHeight *0.1)){
+            else if (goalRightX < ballCenterX + ballSpeedX  && goalRightY < ballBottomTotal
+                    && ballBottomTotal < goalRightY + (int)((double)goalHeight *0.1)){
                 ballSpeedY = ballSpeedY * -0.75;
                 //ballSpeedY = -ballSpeedY;
-                ballSpeedX -= 8;
+                //Otetaan pallo pois maalin ylärimasta
+                ballSpeedX -= increaseBallSpeed * 15;
                 ballCenterY += ballSpeedY;
             }
             else{
@@ -374,7 +420,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         }
         else{
             //Log.d("jalkapallo", "osu kattoon");
-            ballSpeedY = ballSpeedY * -0.75;
+            ballSpeedY = ballSpeedY * -0.5;
             ballCenterY += ballSpeedY;
         }
 
@@ -382,71 +428,207 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         //
         //Player1
         //Päivitetään pelaajan keskipiste pelaaajan nopeuden mukaan katsotaan myös ettei mene laitojen yli
-        if(player1LeftX + player1SpeedX > gameAreaMinX && player1RightX + player1SpeedX < gameAreaMaxX){
-            player1CenterX += (int)player1SpeedX;
+        if(player1LeftTotal > gameAreaMinX && player1RightTotal < gameAreaMaxX){
+            //Pelaaja osuu vasemman maalin ylärimaan x-akselilla
+            if(goalLeftX + goalWidth > player1LeftTotal && goalLeftY < player1BottomTotal &&
+                    player1CenterY + player1SpeedY < goalLeftY + (int)((double)goalHeight *0.05)){
+                player1SpeedX = Math.abs(player1SpeedX);
+                player1SpeedX = player1SpeedX * 0.75;
+                player1CenterX += (int)player1SpeedX;
+            }
+            //Pelaaja osuu oikean maalin ylärimaan x-akselilla
+            else if(goalRightX < player1RightTotal && goalRightY < player1BottomTotal &&
+                    player1CenterY + player1SpeedY < goalRightY + (int)((double)goalHeight *0.05)){
+                player1SpeedX = Math.abs(player1SpeedX);
+                player1SpeedX = player1SpeedX * -0.75;
+                player1CenterX += (int)player1SpeedX;
+            }
+            else{
+                player1CenterX += (int)player1SpeedX;
+            }
         }
         else{
             player1SpeedX = player1SpeedX * -0.75;
             player1CenterX += player1SpeedX;
         }
         //Pelaaja1 y-akselilla
-        if(player1TopY + player1SpeedY > gameAreaMinY && player1BottomY + player1SpeedY < gameAreaMaxY){
-            player1CenterY += (int)player1SpeedY;
+        if(player1TopTotal > gameAreaMinY && player1BottomTotal < gameAreaMaxY){
+            //Pallo osuu vasemman maalin ylärimaan ylhäältä päin
+            if(goalLeftX + goalWidth > player1LeftTotal  && goalLeftY < player1BottomTotal
+                    && player1BottomTotal < goalLeftY + (int)((double)goalHeight *0.1)){
+                player1SpeedY = player1SpeedY * -0.75;
+                player1CenterY += player1SpeedY;
+            }
+            //Pelaaja osuu vasemman maalin ylärimaan alhaaltapäin
+            else if(goalLeftX + goalWidth > player1LeftTotal  && goalLeftY < player1BottomTotal
+                    && player1CenterY + player1SpeedY < goalLeftY + (int)((double)goalHeight *0.12)){
+                player1SpeedY = player1SpeedY * -0.75;
+                player1CenterY += player1SpeedY;
+            }
+            //Pallo osuu oikean maalin ylärimaan ylhäältäpäin
+            else if (goalRightX < player1RightTotal  && goalRightY < player1BottomTotal
+                    && player1BottomTotal < goalRightY + (int)((double)goalHeight *0.1)){
+                player1SpeedY = player1SpeedY * -0.75;
+                player1CenterY += player1SpeedY;
+            }
+            //Pelaaja osuu oikean maalin ylärimaan alhaaltapäin
+            else if(goalRightX < player1RightTotal  && goalLeftY < player1BottomTotal
+                    && player1CenterY + player1SpeedY < goalLeftY + (int)((double)goalHeight *0.12)){
+                player1SpeedY = player1SpeedY * -0.75;
+                player1CenterY += player1SpeedY;
+            }
+            else{
+                player1CenterY += (int)player1SpeedY;
+            }
         }
         else{
-            player1SpeedY = player1SpeedY * -0.75;
+            player1SpeedY = player1SpeedY * -0.5;
             player1CenterY += player1SpeedY;
         }
 
 
         //
         //Player2
-        //Pelaaja2 x-akselilla
-        if(player2LeftX + player2SpeedX > gameAreaMinX && player2RightX + player2SpeedX < gameAreaMaxX){
-            player2CenterX += (int)player2SpeedX;
+        //Päivitetään pelaajan keskipiste pelaaajan nopeuden mukaan katsotaan myös ettei mene laitojen yli
+        if(player2LeftTotal > gameAreaMinX && player2RightTotal < gameAreaMaxX){
+            //Pelaaja osuu vasemman maalin ylärimaan x-akselilla
+            if(goalLeftX + goalWidth > player2LeftTotal && goalLeftY < player2BottomTotal &&
+                    player2CenterY + player2SpeedY < goalLeftY + (int)((double)goalHeight *0.05)){
+                player2SpeedX = Math.abs(player2SpeedX);
+                player2SpeedX = player2SpeedX * 0.75;
+                player2CenterX += (int)player2SpeedX;
+            }
+            //Pelaaja osuu oikean maalin ylärimaan x-akselilla
+            else if(goalRightX < player2RightTotal && goalRightY < player2BottomTotal &&
+                    player2CenterY + player2SpeedY < goalRightY + (int)((double)goalHeight *0.05)){
+                player2SpeedX = Math.abs(player2SpeedX);
+                player2SpeedX = player2SpeedX * -0.75;
+                player2CenterX += (int)player2SpeedX;
+            }
+            else{
+                player2CenterX += (int)player2SpeedX;
+            }
         }
         else{
-            player2SpeedX = player2SpeedX * -0.75;
+            player2SpeedX = player2SpeedX * -0.5;
             player2CenterX += player2SpeedX;
         }
-
         //Pelaaja2 y-akselilla
-        if(player2TopY + player2SpeedY > gameAreaMinY && player2BottomY + player2SpeedY < gameAreaMaxY){
-            player2CenterY += (int)player2SpeedY;
+        if(player2TopTotal > gameAreaMinY && player2BottomTotal < gameAreaMaxY){
+            //Pallo osuu vasemman maalin ylärimaan ylhäältä päin
+            if(goalLeftX + goalWidth > player2LeftTotal  && goalLeftY < player2BottomTotal
+                    && player2BottomTotal < goalLeftY + (int)((double)goalHeight *0.1)){
+                player2SpeedY = player2SpeedY * -0.75;
+                player2CenterY += player2SpeedY;
+            }
+            //Pelaaja osuu vasemman maalin ylärimaan alhaaltapäin
+            else if(goalLeftX + goalWidth > player2LeftTotal  && goalLeftY < player2BottomTotal
+                    && player2CenterY + player2SpeedY < goalLeftY + (int)((double)goalHeight *0.12)){
+                player2SpeedY = player2SpeedY * -0.75;
+                player2CenterY += player2SpeedY;
+            }
+            //Pallo osuu oikean maalin ylärimaan ylhäältäpäin
+            else if (goalRightX < player2RightTotal  && goalRightY < player2BottomTotal
+                    && player2BottomTotal < goalRightY + (int)((double)goalHeight *0.1)){
+                player2SpeedY = player2SpeedY * -0.75;
+                player2CenterY += player2SpeedY;
+            }
+            //Pelaaja osuu oikean maalin ylärimaan alhaaltapäin
+            else if(goalRightX < player2RightTotal  && goalLeftY < player2BottomTotal
+                    && player2CenterY + player2SpeedY < goalLeftY + (int)((double)goalHeight *0.12)){
+                player2SpeedY = player2SpeedY * -0.75;
+                player2CenterY += player2SpeedY;
+            }
+            else{
+                player2CenterY += (int)player2SpeedY;
+            }
         }
         else{
-            player2SpeedY = player2SpeedY * -0.75;
+            player2SpeedY = player2SpeedY * -0.5;
             player2CenterY += player2SpeedY;
         }
 
+
+        //Pelaajien törmäys palloon
+        //Lasketaan kulma pallon ja pelaajan välille
         //Katsotaan osuuko pelaaja palloon
-        if(((player1RightX > ballLeftX && player1RightX < ballRightX) || (player1LeftX < ballRightX && player1LeftX > ballLeftX)) &&
-                ((player1BottomY > ballTopY && player1BottomY < ballBottomY) || (player1TopY < ballBottomY && player1TopY > ballTopY))){
-            //lastHitTimeBallAndPlayer1 = System.currentTimeMillis();
+        if(((player1RightX >= ballLeftX && player1CenterX <= ballCenterX) || (player1LeftX <= ballRightX && player1CenterX >= ballCenterX)) &&
+                ((player1BottomY >= ballTopY && player1CenterY <= ballCenterY) || (player1TopY <= ballBottomY && player1CenterY >= ballCenterY))){
             double angle = calculateAngle(ballCenterX, ballCenterY, player1CenterX, player1CenterY);
             calculateSpeed(angle);
-            //ballSpeedX = angle;
         }
-        /*
+
         //Pelaaja2 ja pallon töyrmäys
         //Pelaaja2
-        if(((player2RightX > ballLeftX && player2RightX < ballRightX) || (player2LeftX < ballRightX && player2LeftX > ballLeftX)) &&
-                ((player2BottomY > ballTopY && player2BottomY < ballBottomY) || (player2TopY < ballBottomY && player2TopY > ballTopY))){
-            //lastHitTimeBallAndPlayer2 = System.currentTimeMillis();
-            //&& hitTime > lastHitTimeBallAndPlayer2+100)
-            ballSpeedX = player2SpeedX * 2;
-            ballSpeedY = player2SpeedY * 2;
-        }*/
+        if(((player2RightX >= ballLeftX && player2CenterX <= ballCenterX) || (player2LeftX <= ballRightX && player2CenterX >= ballCenterX)) &&
+                ((player2BottomY >= ballTopY && player2CenterY <= ballCenterY) || (player2TopY <= ballBottomY && player2CenterY >= ballCenterY))){
+            double angle = calculateAngle(ballCenterX, ballCenterY, player2CenterX, player2CenterY);
+            calculateSpeed(angle);
+        }
+
+
+        //Pelaajien törmäykset
+        //Pelaajien törmäys x- ja y-akselilla
+        //Pelaajien töyrmäys x-akselilla
+        if((player1RightTotal > player2LeftTotal && player1CenterX + player2SpeedX < player2CenterX + player2SpeedX ||
+            player1LeftTotal < player2RightTotal && player1CenterX + player1SpeedX > player2CenterX + player2SpeedX)&&
+            (player1TopTotal < player2BottomTotal && player1TopTotal > player2TopTotal ||
+            player1BottomTotal > player2TopTotal && player1BottomTotal < player2BottomTotal)){
+            //Log.d("perkele", "osuit pelaajaan homo");
+            //Pelaaja1 on oikealla ja pelaaja 2 vasemmalla
+            if(player1CenterX > player2CenterX){
+                player1SpeedX = Math.abs(player1SpeedX);
+                player1SpeedX = player1SpeedX * 0.75;
+
+                player2SpeedX = Math.abs(player2SpeedX);
+                player2SpeedX = player2SpeedX * -0.75;
+            }
+            //Pelaaja2 on oikealla ja pelaaja1 vasemmalla
+            else if(player1CenterX <= player2CenterX){
+                player1SpeedX = Math.abs(player1SpeedX);
+                player1SpeedX = player1SpeedX * -0.75;
+
+                player2SpeedX = Math.abs(player2SpeedX);
+                player2SpeedX = player2SpeedX * 0.75;
+            }
+        }
+
+        //Pelaajien töyrmäys y-akselilla
+        if(((player1RightTotal > player2LeftTotal && player1LeftTotal < player2RightTotal) ||
+           (player2RightTotal > player1LeftTotal && player2LeftTotal < player1RightTotal)) &&
+            ((player1TopTotal < player2BottomTotal && player1CenterY + player1SpeedY > player2CenterY + player2SpeedY) ||
+            (player2TopTotal < player1BottomTotal && player2CenterY + player2SpeedY > player1CenterY + player1SpeedY))){
+            if(player1CenterY > player2CenterY){
+                player1SpeedY = Math.abs(player1SpeedY);
+                player1SpeedY = player1SpeedY * 0.75;
+
+                player2SpeedY = Math.abs(player2SpeedY);
+                player2SpeedY = player2SpeedY * -0.75;
+            }
+            //Pelaaja2 on alhapuolella ja pelaaja1 yläpuolella
+            else if(player1CenterY <= player2CenterY){
+                player1SpeedY = Math.abs(player1SpeedY);
+                player1SpeedY = player1SpeedY * -0.75;
+
+                player2SpeedY = Math.abs(player2SpeedY);
+                player2SpeedY = player2SpeedY * 0.75;
+            }
+        }
+
 
 
         //
         //Katsotaan meneekö pallo maaliin
         //Pallo menee vasempaan maaliin
+        //if(ballRightX < goalLeftX + goalWidth && ballTopY > goalLeftY && ballCenterY < goalLeftY + goalHeight)
         if(ballRightX < goalLeftX + goalWidth && ballTopY > goalLeftY && ballCenterY < goalLeftY + goalHeight){
+            scoreTime = System.currentTimeMillis();
             setStartCoordinates();
             nullSpeeds();
             player2Score++;
             updateScore();
+            goalTextRed = false;
+            goalTextBlue = true;
             if(player2Score >= 10){
                 //player1Score = 0;
                 //player2Score = 0;
@@ -456,16 +638,43 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
         //Pallo menee oikeaan maaliin
         if(ballLeftX > goalRightX && ballTopY > goalRightY && ballCenterY < goalRightY + goalHeight){
+            scoreTime = System.currentTimeMillis();
             setStartCoordinates();
             nullSpeeds();
             player1Score++;
             updateScore();
+            goalTextRed = true;
+            goalTextBlue = false;
             if(player1Score >= 10){
                 //player1Score = 0;
                 //player2Score = 0;
                 footballGameThread.setRunning(false);
             }
         }
+
+
+        //
+        //Pallon maksiminopeus
+        //Katsotaan ettei pallo mene liian nopeaa
+        if(ballSpeedX > BALL_MAX_SPEED){
+            ballSpeedX = BALL_MAX_SPEED;
+        }
+        if(ballSpeedX < -BALL_MAX_SPEED){
+            ballSpeedX = -BALL_MAX_SPEED;
+        }
+        if(ballSpeedY > BALL_MAX_SPEED){
+            ballSpeedY = BALL_MAX_SPEED;
+        }
+        if(ballSpeedY < -BALL_MAX_SPEED){
+            ballSpeedY = -BALL_MAX_SPEED;
+        }
+
+        //Maaliteksti otetaan pois kun se on ollut näytöllä 3 sekunnin ajan
+        if(hitTime > scoreTime +3000){
+            goalTextRed = false;
+            goalTextBlue = false;
+        }
+
     }
 
 
@@ -481,7 +690,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         }
 
         //Pallon painovoima
-        if(ballSpeedY < 20){
+        if(ballSpeedY < 20 || ballSpeedY != 0){
             ballSpeedY += gravity;
         }
 
@@ -502,20 +711,13 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         }
 
         //Pelaaja1 painovoima
-        if(player1SpeedY < 20){
+        if(player1SpeedY < 20 || player1SpeedY != 0){
             player1SpeedY += gravity;
         }
         //Pelaaja2 painovoima
-        if(player2SpeedY < 20){
+        if(player2SpeedY < 20 || player2SpeedY != 0){
             player2SpeedY += gravity;
         }
-        /*
-        if(ballCenterX < goalLeftX + goalWidth && ballCenterY < goalLeftY && ballSpeedX < 20){
-            ballSpeedX += 0.5;
-        }
-        if(ballCenterX > goalRightX && ballCenterY < goalRightY && ballSpeedX > -20){
-            ballSpeedX -= 0.5;
-        }*/
     }
 
     public void moveBallAndPlayers(){
@@ -533,7 +735,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     public double calculateAngle(int ballX, int ballY, int playerX, int playerY){
 
         double angle;
-        double anglePlus;
+        //double anglePlus;
         double xDistance;
         double yDistance;
         xDistance = (double)Math.abs(ballX - playerX);
@@ -545,9 +747,10 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         angle = (double) Math.toDegrees(Math.atan(yDistance / xDistance));
 
         //Pallo on pelaajan oikeassa alakulmassa
+        /*
         if(ballX > playerX && ballY > playerY){
             //Ei tarvi tehdä mitään
-        }
+        }*/
         //Pallo on pelaajan vasemmassa alakulmassa
         if(ballX < playerX && ballY > playerY){
             angle += 90;
@@ -568,8 +771,8 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         //Pallo on pelaajan oikeassa alakulmassa
         if(angle >= 0 && angle < 90){
             double angle2 = 90 - angle;
-            ballSpeedX = angle * 0.3;
-            ballSpeedY = angle2 * 0.3;
+            ballSpeedX = angle * increaseBallSpeed;
+            ballSpeedY = angle2 * increaseBallSpeed;
             if(ballSpeedX < 5){
                 ballSpeedX += 5;
             }
@@ -580,8 +783,8 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         //Pallo on pelaajan vasemmassa alakulmassa
         if(angle >= 90 && angle < 180){
             double angle2 = 180 - angle;
-            ballSpeedX = angle * -0.3;
-            ballSpeedY = angle2 * 0.3;
+            ballSpeedX = angle * -increaseBallSpeed;
+            ballSpeedY = angle2 * increaseBallSpeed;
             if(ballSpeedX > -5){
                 ballSpeedX += 5;
             }
@@ -592,8 +795,8 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         //Pallo on pelaajan vasemmassa yläkulmassa
         if(angle >= 180 && angle < 270){
             double angle2 = 270 - angle;
-            ballSpeedX = angle * -0.3;
-            ballSpeedY = angle2 * -0.3;
+            ballSpeedX = angle * -increaseBallSpeed;
+            ballSpeedY = angle2 * -increaseBallSpeed;
             if(ballSpeedX > -5){
                 ballSpeedX -= 5;
             }
@@ -604,8 +807,8 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         //Pallo on pelaajan oikeassa yläkulmassa
         if(angle >= 270 && angle < 360){
             double angle2 = 360 - angle;
-            ballSpeedX = angle * 0.3;
-            ballSpeedY = angle2 * -0.3;
+            ballSpeedX = angle * increaseBallSpeed;
+            ballSpeedY = angle2 * -increaseBallSpeed;
             if(ballSpeedX < 5){
                 ballSpeedX += 5;
             }
@@ -622,12 +825,10 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
         super.onDraw(canvas);
 
-        //Piirretään taustakuva
-        canvas.drawBitmap(bitmapBackgroundImage, 0, 0, null);
+        if(canvas != null){
+            //Piirretään taustakuva
+            canvas.drawBitmap(bitmapBackgroundImage, 0, 0, null);
 
-        //Log.d("football", "piirretaan");
-        //ball.invalidate();
-        //ball.draw(canvas);
         /*
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
@@ -636,56 +837,228 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
         canvas.drawText(teksti, tekstiX, tekstiY, paint);*/
 
-        //Piirretään jalkapallo
-        canvas.drawBitmap(bitmapFootball, ballCenterX-ballRadius, ballCenterY-ballRadius, null);
+            //Piirretään jalkapallo
+            canvas.drawBitmap(bitmapFootball, ballCenterX-ballRadius, ballCenterY-ballRadius, null);
 
-        //Piirretään pelaajat
-        canvas.drawBitmap(bitmapPlayer1, player1CenterX-playerRadius, player1CenterY-playerRadius, null);
+            //Piirretään pelaajat
+            canvas.drawBitmap(bitmapPlayer1, player1CenterX-playerRadius, player1CenterY-playerRadius, null);
+            canvas.drawBitmap(bitmapPlayer2, player2CenterX-playerRadius, player2CenterY-playerRadius, null);
 
-        //canvas.drawBitmap(bitmapPlayer2, player2CenterX-playerRadius, player2CenterY-playerRadius, null);
-        //canvas.drawBitmap(bitmapPlayer2, ballCenterX+150, ballCenterY, null);
+            //Piirretään maalit
+            canvas.drawBitmap(bitmapGoalLeft, goalLeftX, goalLeftY, null);
+            canvas.drawBitmap(bitmapGoalRight, goalRightX, goalRightY, null);
 
-        //Piirretään maalit
-        canvas.drawBitmap(bitmapGoalLeft, goalLeftX, goalLeftY, null);
-        canvas.drawBitmap(bitmapGoalRight, goalRightX, goalRightY, null);
+            //Piirretään joystickit
+            canvas.drawBitmap(bitmapJoystick1, joystick1CenterX-joystickRadius, joystick1CenterY-joystickRadius, null);
+            canvas.drawBitmap(bitmapJoystick2, joystick2CenterX-joystickRadius, joystick2CenterY-joystickRadius, null);
 
-        //Piirretään joystickit
-        canvas.drawBitmap(bitmapJoystick1, joystick1CenterX-joystickRadius, joystick1CenterY-joystickRadius, null);
-        //canvas.drawBitmap(bitmapJoystick1, player1CenterX, player1CenterY, null);
+            //Piirretään tulos
+            canvas.drawText(score, textX, textY, paintText);
 
-        canvas.drawBitmap(bitmapJoystick2, joystick2CenterX-joystickRadius, joystick2CenterY-joystickRadius, null);
+            //Piirretään maaliteksti jos pelaaja on saanut maalin
+            if(goalTextBlue == true){
+                canvas.drawBitmap(bitmapGoalTextBlue, goalTextX, goalTextY, null);
+            }
+            if (goalTextRed == true){
+                canvas.drawBitmap(bitmapGoalTextRed, goalTextX, goalTextY, null);
+            }
 
-
-
-        canvas.drawText(score, textX, textY, paintText);
-
-        //ball.draw(canvas);
-        //canvas.drawBitmap(bitmapJoystick1, ballCenterX, ballCenterY, null);
-
+            //ball.draw(canvas);
+            //canvas.drawBitmap(bitmapJoystick1, ballCenterX, ballCenterY, null);
+        }
     }
-
-    /*
-    @Override
-    public void onBackPressed(){
-
-
-        Log.d("football", "painoit back");
-    }*/
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        handleTouch(event);
+        return true;
+    }
 
-        float js1X = 0;
-        float js1Y = 0;
-        double js1Angle = 0;
-        float distance = 0;
-        float xDistance = 0;
-        float yDistance = 0;
+    public void handleTouch(MotionEvent event)
+    {
+        int pointerCount = event.getPointerCount();
+        String actionString = null;
+
+        //Loop, joka käsittelee kaikki kosketukset
+        for (int i = 0; i < pointerCount; i++ )
+        {
+            int x = (int) event.getX(i);
+            int y = (int) event.getY(i);
+            int action = event.getActionMasked();
+            //int actionIndex = event.getActionIndex();
+            //int id = event.getPointerId(i);
+
+            switch (action){
+                case MotionEvent.ACTION_MOVE:
+
+                    actionString = "MOVE";
+                    break;
+                case MotionEvent.ACTION_POINTER_DOWN:
+                    actionString = "DOWN";
+                    break;
+                default:
+                    actionString = "";
+            }
+
+            if(actionString == "MOVE" || actionString == "DOWN")
+            {
+                //Kosketus on vasemmalla puolella ruutua
+                if (x < screenWidth / 2) {
+
+                    //Lähetetään koordinaatit funktioon, joka laskee niiden perusteella kulman
+                    player1Joystick.calculateAngle(x, y);
+
+                    //Perinteiset suunnat
+                    if (player1Joystick.getDirection() == "UP") {
+                        if (player1SpeedY > -PLAYER_MAX_SPEED) {
+                            player1SpeedY -= increasePlayerSpeed;
+                        }
+                    }
+                    if (player1Joystick.getDirection() == "DOWN") {
+                        if (player1SpeedY < PLAYER_MAX_SPEED) {
+                            player1SpeedY += increasePlayerSpeed;
+                        }
+                    }
+                    if (player1Joystick.getDirection() == "LEFT") {
+                        if (player1SpeedX > -PLAYER_MAX_SPEED) {
+                            player1SpeedX -= increasePlayerSpeed;
+                        }
+                    }
+                    if (player1Joystick.getDirection() == "RIGHT") {
+                        if (player1SpeedX < PLAYER_MAX_SPEED) {
+                            player1SpeedX += increasePlayerSpeed;
+                        }
+                    }
+
+                    //Viistottaiset suunnat
+                    if (player1Joystick.getDirection() == "UPRIGHT") {
+                        if (player1SpeedX < PLAYER_MAX_SPEED) {
+                            player1SpeedX += increasePlayerSpeed;
+                        }
+                        if (player1SpeedY > -PLAYER_MAX_SPEED) {
+                            player1SpeedY -= increasePlayerSpeed;
+                        }
+                    }
+                    if (player1Joystick.getDirection() == "DOWNRIGHT") {
+                        if (player1SpeedX < PLAYER_MAX_SPEED) {
+                            player1SpeedX += increasePlayerSpeed;
+                        }
+                        if (player1SpeedY < PLAYER_MAX_SPEED) {
+                            player1SpeedY += increasePlayerSpeed;
+                        }
+                    }
+                    if (player1Joystick.getDirection() == "DOWNLEFT") {
+                        if (player1SpeedX > -PLAYER_MAX_SPEED) {
+                            player1SpeedX -= increasePlayerSpeed;
+                        }
+
+                        if (player1SpeedY < PLAYER_MAX_SPEED) {
+                            player1SpeedY += increasePlayerSpeed;
+                        }
+                    }
+                    if (player1Joystick.getDirection() == "UPLEFT") {
+                        if (player1SpeedX > -PLAYER_MAX_SPEED) {
+                            player1SpeedX -= increasePlayerSpeed;
+                        }
+
+                        if (player1SpeedY > -PLAYER_MAX_SPEED) {
+                            player1SpeedY -= increasePlayerSpeed;
+                        }
+                    }
+                }
+
+                //Kosketus on oikealla puolella ruutua
+                if (x > screenWidth / 2) {
+
+                    player2Joystick.calculateAngle(x, y);
+
+                    //Perinteiset suunnat
+                    if (player2Joystick.getDirection() == "UP") {
+                        if(player2SpeedY > -PLAYER_MAX_SPEED){
+                            player2SpeedY -= increasePlayerSpeed;
+                        }
+                    }
+                    if (player2Joystick.getDirection() == "DOWN") {
+                        if (player2SpeedY < PLAYER_MAX_SPEED) {
+                            player2SpeedY += increasePlayerSpeed;
+                        }
+                    }
+                    if (player2Joystick.getDirection() == "LEFT") {
+                        if (player2SpeedX > -PLAYER_MAX_SPEED) {
+                            player2SpeedX -= increasePlayerSpeed;
+                        }
+                    }
+                    if (player2Joystick.getDirection() == "RIGHT") {
+                        if (player2SpeedX < PLAYER_MAX_SPEED) {
+                            player2SpeedX += increasePlayerSpeed;
+                        }
+                    }
+
+                    //Viistottaiset suunnat
+                    if (player2Joystick.getDirection() == "UPRIGHT") {
+                        if (player2SpeedX < PLAYER_MAX_SPEED) {
+                            player2SpeedX += increasePlayerSpeed;
+                        }
+                        if (player2SpeedY > -PLAYER_MAX_SPEED) {
+                            player2SpeedY -= increasePlayerSpeed;
+                        }
+                    }
+                    if (player2Joystick.getDirection() == "DOWNRIGHT") {
+                        if (player2SpeedX < PLAYER_MAX_SPEED) {
+                            player2SpeedX += increasePlayerSpeed;
+                        }
+                        if (player2SpeedY < PLAYER_MAX_SPEED) {
+                            player2SpeedY += increasePlayerSpeed;
+                        }
+                    }
+                    if (player2Joystick.getDirection() == "DOWNLEFT") {
+                        if (player2SpeedX > -PLAYER_MAX_SPEED) {
+                            player2SpeedX -= increasePlayerSpeed;
+                        }
+
+                        if (player2SpeedY < PLAYER_MAX_SPEED) {
+                            player2SpeedY += increasePlayerSpeed;
+                        }
+                    }
+                    if (player2Joystick.getDirection() == "UPLEFT") {
+                        if (player2Joystick.getDirection() == "UPLEFT") {
+                            if (player2SpeedX > -PLAYER_MAX_SPEED) {
+                                player2SpeedX -= increasePlayerSpeed;
+                            }
+
+                            if (player2SpeedY > -PLAYER_MAX_SPEED) {
+                                player2SpeedY -= increasePlayerSpeed;
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
+}
 
 
-        switch (event.getAction()) {
 
-            case MotionEvent.ACTION_MOVE:
+
+
+
+
+
+
+
+
+
+                /*
+                for (int i = 0; i < pointerCount; i++) {
+                    touchOnScreen[fingerId].x = event.getX(i);
+                    touchOnScreen[fingerId].y = event.getY(i);
+                }*/
+
+
+                /*
+
 
                 x = event.getX();
                 y = event.getY();
@@ -704,7 +1077,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                     //Jos kosketus joystickin alueella otetaan x ja y talteen
                     js1X = x;
                     js1Y = y;
-                    Log.d("X ", String.valueOf(js1X) );
+                    Log.d("X ", String.valueOf(js1X));
                     Log.d("Y" , String.valueOf(js1Y));
 
                     if(js1X == joystick1CenterX && js1Y == joystick1CenterY)
@@ -795,7 +1168,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                 {
                     Log.d("Suunta", "Oikealle");
                     //Jos hahmon nopeus on vähemmän kuin maksiminopeus, nopeutetaan
-                    if(player1SpeedX < playerMaxSpeed)
+                    if(player1SpeedX < PLAYER_MAX_SPEED)
                     {
                         player1SpeedX += increasePlayerSpeed;
                     }
@@ -806,13 +1179,13 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                 {
                     Log.d("Suunta", "Oikealle alaviistoon");
                     //Jos hahmon nopeus on  vähemmän kuin maksiminopeus, nopeutetaan
-                    if(player1SpeedX < playerMaxSpeed)
+                    if(player1SpeedX < PLAYER_MAX_SPEED)
                     {
                         player1SpeedX += increasePlayerSpeed;
                     }
 
                     //Jos hahmon nopeus on vähemmän kuin maksiminopeus, nopeutetaan
-                    if(player1SpeedY < playerMaxSpeed)
+                    if(player1SpeedY < PLAYER_MAX_SPEED)
                     {
                         player1SpeedY += increasePlayerSpeed;
                     }
@@ -822,7 +1195,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                 {
                     Log.d("Suunta", " Alas");
                     //Jos hahmon nopeus on vähemmän kuin maksiminopeus, nopeutetaan
-                    if(player1SpeedY < playerMaxSpeed)
+                    if(player1SpeedY < PLAYER_MAX_SPEED)
                     {
                         player1SpeedY += increasePlayerSpeed;
                     }
@@ -832,12 +1205,12 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                 {
                     Log.d("Suunta", "Vasemmalle alaviistoon");
                     //Jos hahmon nopeus on enemmän kuin negatiivinen maksiminopeus, lisätää
-                    if(player1SpeedX > -playerMaxSpeed)
+                    if(player1SpeedX > -PLAYER_MAX_SPEED)
                     {
                         player1SpeedX -= increasePlayerSpeed;
                     }
 
-                    if(player1SpeedY < playerMaxSpeed)
+                    if(player1SpeedY < PLAYER_MAX_SPEED)
                     {
                         player1SpeedY += increasePlayerSpeed;
                     }
@@ -847,7 +1220,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                 {
                     Log.d("Suunta", "Vasemmalle");
 
-                    if(player1SpeedX > -playerMaxSpeed)
+                    if(player1SpeedX > -PLAYER_MAX_SPEED)
                     {
                         player1SpeedX -= increasePlayerSpeed;
                     }
@@ -856,12 +1229,12 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                 if(js1Angle > 202.5 && js1Angle < 247.5)
                 {
                     Log.d("Suunta", "Vasemmalle yläviistoon");
-                    if(player1SpeedX > -playerMaxSpeed)
+                    if(player1SpeedX > -PLAYER_MAX_SPEED)
                     {
                         player1SpeedX -= increasePlayerSpeed;
                     }
 
-                    if(player1SpeedY > -playerMaxSpeed)
+                    if(player1SpeedY > -PLAYER_MAX_SPEED)
                     {
                         player1SpeedY -= increasePlayerSpeed;
                     }
@@ -870,7 +1243,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                 if(js1Angle > 247.5 && js1Angle < 292.5)
                 {
                     Log.d("Suunta", "Ylös");
-                    if(player1SpeedY > -playerMaxSpeed)
+                    if(player1SpeedY > -PLAYER_MAX_SPEED)
                     {
                         player1SpeedY -= increasePlayerSpeed;
                     }
@@ -879,18 +1252,13 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                 if(js1Angle > 292.5 && js1Angle <  337.5)
                 {
                     Log.d("Suunta", "Oikealle yläviistoon");
-                    if(player1SpeedX < playerMaxSpeed)
+                    if(player1SpeedX < PLAYER_MAX_SPEED)
                     {
                         player1SpeedX += increasePlayerSpeed;
                     }
-                    if(player1SpeedY > -playerMaxSpeed)
+                    if(player1SpeedY > -PLAYER_MAX_SPEED)
                     {
                         player1SpeedY -= increasePlayerSpeed;
                     }
 
-                }
-        }
-        return true;
-    }
-
-}
+                }*/

@@ -22,6 +22,7 @@
             android:uiOptions="none"
             android:screenOrientation="sensorLandscape">
         </activity>
+        <service android:enabled="true" android:name=".backgroundAudioHandler" />
     </application>
 
 </manifest>
