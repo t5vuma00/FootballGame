@@ -248,6 +248,5 @@ class simpleJoystick extends View{
     {
         return jsY;
     }
-
 }
 

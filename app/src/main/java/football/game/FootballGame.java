@@ -1,12 +1,15 @@
 package football.game;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
@@ -20,8 +23,41 @@ import android.view.WindowManager;
 
 public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
+
+
+
+    //Luodaan olio luokasta handleBitmaps
+    //handleBitmaps bitmapHandler = new handleBitmaps(getContext());
+
+    //Alustetaan taulukko, joka sisältää hahmojen kuvat
+    private int[] playerSkinArray = {
+            R.drawable.character1,
+            R.drawable.character2,
+            R.drawable.character3,
+            R.drawable.character4,
+            R.drawable.character5,
+            R.drawable.character6,
+            R.drawable.character7
+    };
+
+    //Alustetaan taulukko, joka sisältää taustojen kuvat 0-1
+    private int[] backgroundArray = {
+            R.drawable.backgroundsun,
+            R.drawable.backgroundcity
+    };
+
+    //Alustetaan taulukko, joka sisältää jalkapallojen kuvat 0-1
+    private int[] footballArray = {
+            R.drawable.football1,
+            R.drawable.football2
+    };
+
+
+    String skinP1 = null;
+
     SurfaceHolder holder;
     FootballGameThread footballGameThread;
+
 
     //Pelissä käytetyt kuvat
     private Bitmap bitmapFootball;
@@ -37,6 +73,8 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
     private Bitmap bitmapJoystick1;
     private Bitmap bitmapJoystick2;
+
+
 
     //Pelaajan näytön koko
     private int screenWidth = 0;
@@ -113,8 +151,6 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     private long hitTime = 0;
     private long scoreTime = 0;
 
-
-
     Ball ball;
 
     simpleJoystick player1Joystick;
@@ -143,6 +179,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         player1Joystick = new simpleJoystick(context, attributeSet);
         player2Joystick = new simpleJoystick(context, attributeSet);
 
+
         footballGameThread = new FootballGameThread(this);
         //Määritellään arvot näytölle sopiviksi
         setScaledValues();
@@ -150,6 +187,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         setStartCoordinates();
         //Määritellään teksti joka tulostaa tulokset näytölle
         setText();
+
         //Määritellään kuvat
         createBitmaps();
 
@@ -256,10 +294,10 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         //joystick1CenterY = (int)((double)screenHeight * 0.78);
 
         goalLeftX = gameAreaMinX;
-        goalLeftY = (int)((double)screenWidth * 0.25);
+        goalLeftY = (int)((double)screenHeight * 0.4);
 
         goalRightX = gameAreaMaxX - goalWidth;
-        goalRightY = (int)((double)screenWidth * 0.25);
+        goalRightY = (int)((double)screenHeight * 0.4);
 
         goalTextX = (screenWidth / 2) - (screenWidth / 10);
         goalTextY = screenHeight / 5;
@@ -299,20 +337,34 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         player2SpeedY = 0;
     }
 
-
     //Luodaan kaikki kuvat joita aletaan piirtämään näytölle
     public void createBitmaps(){
 
-        bitmapFootball = BitmapFactory.decodeResource(getResources(), R.drawable.football);
+        /*
+        bitmapHandler.setSizes(ballRadius, playerRadius,screenWidth, screenHeight, goalWidth, goalHeight, joystickRadius, ballCenterX, ballCenterY, player1CenterX, player1CenterY, player2CenterX, player2CenterY,
+                goalLeftX, goalLeftY, goalRightX, goalRightY, joystick1CenterX, joystick1CenterY, joystick2CenterX, joystick2CenterY, goalTextX, goalTextY);
+
+        bitmapHandler.createBitmaps();
+*/
+
+
+        //Otetaan vastaan käyttäjän asettamat hahmot
+        SharedPreferences pref = getContext().getSharedPreferences("hahmovalinnat", 0);
+        int skinP1 = pref.getInt("character1", 0);
+        int skinP2 = pref.getInt("character2", 0);
+        int background = pref.getInt("background", 0);
+        int football = pref.getInt("football", 0);
+
+        bitmapFootball = BitmapFactory.decodeResource(getResources(), footballArray[football]);
         bitmapFootball = Bitmap.createScaledBitmap(bitmapFootball, ballRadius * 2, ballRadius * 2, true);
 
-        bitmapPlayer1 = BitmapFactory.decodeResource(getResources(), R.drawable.character3);
+        bitmapPlayer1 = BitmapFactory.decodeResource(getResources(), playerSkinArray[skinP1]);
         bitmapPlayer1 = Bitmap.createScaledBitmap(bitmapPlayer1, playerRadius * 2, playerRadius * 2, true);
 
-        bitmapPlayer2 = BitmapFactory.decodeResource(getResources(), R.drawable.character4);
+        bitmapPlayer2 = BitmapFactory.decodeResource(getResources(), playerSkinArray[skinP2]);
         bitmapPlayer2 = Bitmap.createScaledBitmap(bitmapPlayer2, playerRadius * 2, playerRadius * 2, true);
 
-        bitmapBackgroundImage = BitmapFactory.decodeResource(getResources(), R.drawable.backgroundcity);
+        bitmapBackgroundImage = BitmapFactory.decodeResource(getResources(), backgroundArray[background]);
         bitmapBackgroundImage = Bitmap.createScaledBitmap(bitmapBackgroundImage, screenWidth, screenHeight, true);
 
         bitmapGoalLeft = BitmapFactory.decodeResource(getResources(), R.drawable.goal);
@@ -332,6 +384,8 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
         bitmapGoalTextRed = BitmapFactory.decodeResource(getResources(), R.drawable.goaltextred);
         bitmapGoalTextRed = Bitmap.createScaledBitmap(bitmapGoalTextRed, screenWidth / 5, screenHeight / 5, true);
+
+
     }
 
     //Päivittää pallon ja pelaajien sijainnit ja katsoo tapahtuuko törmäyksiä
@@ -615,8 +669,6 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
             }
         }
 
-
-
         //
         //Katsotaan meneekö pallo maaliin
         //Pallo menee vasempaan maaliin
@@ -826,16 +878,20 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         super.onDraw(canvas);
 
         if(canvas != null){
+
+
+
+
             //Piirretään taustakuva
             canvas.drawBitmap(bitmapBackgroundImage, 0, 0, null);
 
-        /*
+
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
         paint.setTextSize(38);
         paint.setColor(Color.YELLOW);
 
-        canvas.drawText(teksti, tekstiX, tekstiY, paint);*/
+        //canvas.drawText(teksti, tekstiX, tekstiY, paint);
 
             //Piirretään jalkapallo
             canvas.drawBitmap(bitmapFootball, ballCenterX-ballRadius, ballCenterY-ballRadius, null);
@@ -863,6 +919,10 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                 canvas.drawBitmap(bitmapGoalTextRed, goalTextX, goalTextY, null);
             }
 
+
+
+
+
             //ball.draw(canvas);
             //canvas.drawBitmap(bitmapJoystick1, ballCenterX, ballCenterY, null);
         }
@@ -873,6 +933,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         handleTouch(event);
         return true;
     }
+
 
     public void handleTouch(MotionEvent event)
     {
@@ -1038,227 +1099,3 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-                /*
-                for (int i = 0; i < pointerCount; i++) {
-                    touchOnScreen[fingerId].x = event.getX(i);
-                    touchOnScreen[fingerId].y = event.getY(i);
-                }*/
-
-
-                /*
-
-
-                x = event.getX();
-                y = event.getY();
-
-                //Joystickin alueen määrittely
-                if(x > joystick1CenterX - joystickRadius
-                        && x < joystick1CenterX + joystickRadius
-                        && y > joystick1CenterY - joystickRadius
-                        && y < joystick1CenterY + joystickRadius)
-                {
-                    //Log.d("JS1", "Kosketellaan joystick 1");
-
-                    //Joystickin vasen yläkulma on joystickCenterX ja joystickCenterY
-                    //Joystickin keskusta on joystickCenterX + joystickRadius ja joystickCenterY + joystickRadius
-
-                    //Jos kosketus joystickin alueella otetaan x ja y talteen
-                    js1X = x;
-                    js1Y = y;
-                    Log.d("X ", String.valueOf(js1X));
-                    Log.d("Y" , String.valueOf(js1Y));
-
-                    if(js1X == joystick1CenterX && js1Y == joystick1CenterY)
-                    {
-                        Log.d("JS1", "JS1 keskipiste");
-                    }
-
-                    //Joystickin oikea yläkulma
-                    if(js1X > joystick1CenterX && js1Y < joystick1CenterY)
-                    {
-                        //Log.d("JS1", "JS1 oikea yläkulma");
-
-                        //Lasketaan etäisyys X- suunnassa keskipisteen X:n verrattuna, tämä on vastakkainen kateetti
-                        xDistance = Math.abs(js1X - joystick1CenterX);
-
-                        //Lasketaan etäisyys Y- suunnassa keskipisteen Y:n verrattuna, tämä on viereinen kateetti
-                        yDistance = Math.abs(js1Y - joystick1CenterY);
-
-                        //Lasketaan hypotenuusa
-                        distance = (float) Math.abs(Math.sqrt(Math.abs(xDistance) + Math.abs(yDistance)));
-
-                        //Lasketaan kulma
-                        js1Angle = Math.toDegrees(Math.atan(xDistance / yDistance)) + 270;
-
-                        //Log.d("JS1 kulma on", String.valueOf(js1Angle));
-
-                    }
-
-                    //Joystickin oikea alakulma
-                    if(js1X > joystick1CenterX && js1Y > joystick1CenterY)
-                    {
-                        //Log.d("JS1", "JS1 oikea alakulma");
-
-                        //Lasketaan etäisyys X- suunnassa keskipisteen X:n verrattuna, tämä on vastakkainen kateetti
-                        xDistance = Math.abs(js1X - joystick1CenterX);
-
-                        //Lasketaan etäisyys Y- suunnassa keskipisteen Y:n verrattuna, tämä on viereinen kateetti
-                        yDistance = Math.abs(js1Y - joystick1CenterY);
-
-                        //Lasketaan kulma
-                        js1Angle = (float) Math.toDegrees(Math.atan(yDistance / xDistance));
-
-                        //Log.d("JS1 kulma on", String.valueOf(js1Angle));
-
-                    }
-
-                    //Joystickin vasen alakulma
-                    if(js1X < joystick1CenterX && js1Y > joystick1CenterY)
-                    {
-                        //Log.d("JS1", "JS1 vasen alakulma");
-
-                        //Lasketaan etäisyys X- suunnassa keskipisteen X:n verrattuna, tämä on vastakkainen kateetti
-                        xDistance = Math.abs(js1X - joystick1CenterX);
-
-                        //Lasketaan etäisyys Y- suunnassa keskipisteen Y:n verrattuna, tämä on viereinen kateetti
-                        yDistance = Math.abs(js1Y - joystick1CenterY);
-
-                        //Lasketaan kulma
-                        js1Angle =  Math.toDegrees(Math.atan(xDistance / yDistance)) + 90;
-
-                        //Log.d("JS1 kulma on", String.valueOf(js1Angle));
-                    }
-
-                    //Joystickin vasen yläkulma
-                    if(js1X < joystick1CenterX && js1Y < joystick1CenterY)
-                    {
-                        //Log.d("JS1", "JS1 vasen yläkulma");
-
-                        //Lasketaan etäisyys X- suunnassa keskipisteen X:n verrattuna, tämä on vastakkainen kateetti
-                        xDistance = Math.abs(js1X - joystick1CenterX);
-
-                        //Lasketaan etäisyys Y- suunnassa keskipisteen Y:n verrattuna, tämä on viereinen kateetti
-                        yDistance = Math.abs(js1Y - joystick1CenterY);
-
-                        //Lasketaan kulma
-                        js1Angle = Math.toDegrees(Math.atan(yDistance / xDistance)) + 180;
-
-                        //Log.d("JS1 kulma on", String.valueOf(js1Angle));
-                    }
-
-
-
-                }
-
-                //Hahmon liikuttaminen
-                //Oikealle 45 asteen sektori
-                if(js1Angle > 0 && js1Angle < 22.5 || js1Angle > 337.5 && js1Angle < 360)
-                {
-                    Log.d("Suunta", "Oikealle");
-                    //Jos hahmon nopeus on vähemmän kuin maksiminopeus, nopeutetaan
-                    if(player1SpeedX < PLAYER_MAX_SPEED)
-                    {
-                        player1SpeedX += increasePlayerSpeed;
-                    }
-
-                }
-                //Oikealle alas
-                if(js1Angle > 22.5 && js1Angle < 67.5)
-                {
-                    Log.d("Suunta", "Oikealle alaviistoon");
-                    //Jos hahmon nopeus on  vähemmän kuin maksiminopeus, nopeutetaan
-                    if(player1SpeedX < PLAYER_MAX_SPEED)
-                    {
-                        player1SpeedX += increasePlayerSpeed;
-                    }
-
-                    //Jos hahmon nopeus on vähemmän kuin maksiminopeus, nopeutetaan
-                    if(player1SpeedY < PLAYER_MAX_SPEED)
-                    {
-                        player1SpeedY += increasePlayerSpeed;
-                    }
-                }
-                //Alas
-                if(js1Angle > 67.5 && js1Angle < 112.5)
-                {
-                    Log.d("Suunta", " Alas");
-                    //Jos hahmon nopeus on vähemmän kuin maksiminopeus, nopeutetaan
-                    if(player1SpeedY < PLAYER_MAX_SPEED)
-                    {
-                        player1SpeedY += increasePlayerSpeed;
-                    }
-                }
-                //Vasemmalle alas
-                if(js1Angle > 112.5 && js1Angle < 157.5)
-                {
-                    Log.d("Suunta", "Vasemmalle alaviistoon");
-                    //Jos hahmon nopeus on enemmän kuin negatiivinen maksiminopeus, lisätää
-                    if(player1SpeedX > -PLAYER_MAX_SPEED)
-                    {
-                        player1SpeedX -= increasePlayerSpeed;
-                    }
-
-                    if(player1SpeedY < PLAYER_MAX_SPEED)
-                    {
-                        player1SpeedY += increasePlayerSpeed;
-                    }
-                }
-                //Vasemmalle
-                if(js1Angle > 157.5 && js1Angle < 202.5)
-                {
-                    Log.d("Suunta", "Vasemmalle");
-
-                    if(player1SpeedX > -PLAYER_MAX_SPEED)
-                    {
-                        player1SpeedX -= increasePlayerSpeed;
-                    }
-                }
-                //Vasemmalle ylös
-                if(js1Angle > 202.5 && js1Angle < 247.5)
-                {
-                    Log.d("Suunta", "Vasemmalle yläviistoon");
-                    if(player1SpeedX > -PLAYER_MAX_SPEED)
-                    {
-                        player1SpeedX -= increasePlayerSpeed;
-                    }
-
-                    if(player1SpeedY > -PLAYER_MAX_SPEED)
-                    {
-                        player1SpeedY -= increasePlayerSpeed;
-                    }
-                }
-                //Ylös
-                if(js1Angle > 247.5 && js1Angle < 292.5)
-                {
-                    Log.d("Suunta", "Ylös");
-                    if(player1SpeedY > -PLAYER_MAX_SPEED)
-                    {
-                        player1SpeedY -= increasePlayerSpeed;
-                    }
-                }
-                //Oikealle ylös
-                if(js1Angle > 292.5 && js1Angle <  337.5)
-                {
-                    Log.d("Suunta", "Oikealle yläviistoon");
-                    if(player1SpeedX < PLAYER_MAX_SPEED)
-                    {
-                        player1SpeedX += increasePlayerSpeed;
-                    }
-                    if(player1SpeedY > -PLAYER_MAX_SPEED)
-                    {
-                        player1SpeedY -= increasePlayerSpeed;
-                    }
-
-                }*/

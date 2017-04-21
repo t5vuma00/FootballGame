@@ -1,12 +1,10 @@
 package football.game;
 
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 
 public class MainActivity extends AppCompatActivity {
@@ -35,10 +33,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
-    protected void startGame(View view){
+    public void startGame(View view){
         stopService(bgMusic);
-        Intent intent = new Intent(this, gameActivity.class);
-        startActivity(intent);
+        //Intent intent = new Intent(this, gameActivity.class);
+        Intent chooseSkins = new Intent(this, chooseSkins.class);
+        startActivity(chooseSkins);
         //finish();
     }
 
@@ -81,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed()
     {
+        super.onBackPressed();
         stopService(bgMusic);
         Log.d("BACK", "mBack");
         finish();
@@ -98,4 +98,14 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         stopService(bgMusic);
     }
+
+    @Override
+    public void onStop()
+    {
+        super.onStop();
+        //stopService(bgMusic);
+    }
+
+
+
 }

@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">FootballGame</string>
     <string name="buttonStartGame">Start Game</string>
-    <string name="textViewFirstActivity">Football Game</string>
+    <string name="textViewFirstActivity">MultiBalls</string>
+    <string name="buttonAbout">About</string>
+    <string name="buttonStore">Store</string>
 </resources>

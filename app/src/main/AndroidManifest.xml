@@ -5,12 +5,13 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
+        android:isGame="true"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:isGame="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity"
+        <activity
+            android:name=".MainActivity"
             android:screenOrientation="sensorLandscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -18,11 +19,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".gameActivity"
-            android:uiOptions="none"
-            android:screenOrientation="sensorLandscape">
-        </activity>
-        <service android:enabled="true" android:name=".backgroundAudioHandler" />
+        <activity
+            android:name=".gameActivity"
+            android:screenOrientation="sensorLandscape"
+            android:uiOptions="none"></activity>
+
+        <service
+            android:name=".backgroundAudioHandler"
+            android:enabled="true" />
+
+        <activity android:name=".chooseSkins"></activity>
     </application>
 
 </manifest>

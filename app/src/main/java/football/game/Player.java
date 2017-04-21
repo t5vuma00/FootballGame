@@ -26,5 +26,4 @@ public class Player extends View {
         canvas.drawCircle(700, 800, 62, paint);
 
     }
-
 }
