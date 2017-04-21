@@ -23,9 +23,6 @@ public class chooseSkins extends AppCompatActivity {
     //Tehdään gameactivitystä intentti
     Intent gActivity;
 
-    //lähetetään hahmot setSkins luokkaan
-    Intent sSkins;
-
     //Muuttujat, joiden perusteella hahmo valitaan
     public int character1 = 0;
     public int character2 = 1;
@@ -220,8 +217,6 @@ public class chooseSkins extends AppCompatActivity {
     {
         finish();
         super.onDestroy();
-
-
         Log.d("cSkins", "cDestroy");
 
     }
