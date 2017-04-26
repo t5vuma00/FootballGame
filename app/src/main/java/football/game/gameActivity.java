@@ -33,7 +33,7 @@ public class gameActivity extends AppCompatActivity {
         bgMusic = new Intent(this, backgroundAudioHandler.class);
         bgMusic.putExtra("audio", "inGameMusic");
         //bindService(bgMusic, mServerConn, Context.BIND_AUTO_CREATE);
-        startService(bgMusic);
+        //startService(bgMusic);
 
 
 
@@ -87,7 +87,7 @@ public class gameActivity extends AppCompatActivity {
     public void onBackPressed(){
         FootballGameThread footballGameThread =  new FootballGameThread(null);
         footballGameThread.setRunning(false);
-        stopService(bgMusic);
+        //stopService(bgMusic);
         super.onBackPressed();
 
         finish();
@@ -107,7 +107,9 @@ public class gameActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
-        //startService(bgMusic);
+        stopService(bgMusic);
+        startService(bgMusic);
+
 
         FootballGameThread footballGameThread =  new FootballGameThread(null);
         footballGameThread.setRunning(true);
@@ -122,7 +124,7 @@ public class gameActivity extends AppCompatActivity {
 
         FootballGameThread footballGameThread =  new FootballGameThread(null);
         footballGameThread.setRunning(false);
-        stopService(bgMusic);
+        //stopService(bgMusic);
         super.onDestroy();
 
 

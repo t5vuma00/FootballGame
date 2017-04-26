@@ -2,6 +2,7 @@ package football.game;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -9,8 +10,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TableLayout;
+import android.widget.TextView;
 
 public class chooseSkins extends AppCompatActivity {
 
@@ -63,7 +66,7 @@ public class chooseSkins extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_skins);
 
-        //bgMusic = new Intent(this, backgroundAudioHandler.class);
+        bgMusic = new Intent(this, backgroundAudioHandler.class);
         //bgMusic.putExtra("audio", "setupMusic");
         //startService(bgMusic);
 
@@ -73,9 +76,21 @@ public class chooseSkins extends AppCompatActivity {
 
         tableLayout = (TableLayout) findViewById(R.id.chooseSkins);
 
-
         gActivity = new Intent(this, gameActivity.class);
 
+
+
+        //Asetetaan fontti textvieweihin
+        String customFont = "multiballsfont.ttf";
+        Typeface typeface = Typeface.createFromAsset(getAssets(), customFont);
+        TextView textViewBall = (TextView) findViewById(R.id.textViewBall);
+        TextView textViewBackground = (TextView) findViewById(R.id.textViewBackground);
+        TextView textViewPlayer1 = (TextView) findViewById(R.id.textViewPlayer1);
+        TextView textViewPlayer2 = (TextView) findViewById(R.id.textViewPlayer2);
+        textViewBall.setTypeface(typeface);
+        textViewBackground.setTypeface(typeface);
+        textViewPlayer1.setTypeface(typeface);
+        textViewPlayer2.setTypeface(typeface);
 
         //Piilottaa sovelluksen nimen
         getSupportActionBar().hide();
@@ -209,6 +224,15 @@ public class chooseSkins extends AppCompatActivity {
         editor.putInt("football", football);
         editor.apply();
 
+        stopService(bgMusic);
+
+        String audio;
+        audio = "inGameMusic";
+        bgMusic.putExtra("audio", audio);
+
+        startService(bgMusic);
+        //stopService(bgMusic);
+
         startActivity(gActivity);
     }
 
@@ -218,7 +242,5 @@ public class chooseSkins extends AppCompatActivity {
         finish();
         super.onDestroy();
         Log.d("cSkins", "cDestroy");
-
     }
-
 }

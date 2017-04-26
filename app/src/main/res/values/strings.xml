@@ -4,4 +4,19 @@
     <string name="textViewFirstActivity">MultiBalls</string>
     <string name="buttonAbout">About</string>
     <string name="buttonStore">Store</string>
+    <string name="labelBackground">Background</string>
+    <string name="labelPlayer1">Player 1</string>
+    <string name="labelPlayer2">Player 2</string>
+    <string name="labelBall">Ball</string>
+    <string name="Tuomo">Tuomo</string>
+    <string name="Marko">Marko</string>
+    <string name="Lauri">Lauri</string>
+    <string name="Juho">Juho</string>
+    <string name="Taru">Taru</string>
+    <string name="aboutTuomo">\nCoding,\nMusic</string>
+    <string name="aboutMarko">\nCoding,\nPhysics</string>
+    <string name="aboutLauri">\nCoding,\nStore</string>
+    <string name="aboutJuho">\nArt Director</string>
+    <string name="aboutTaru">\nArt Director</string>
+
 </resources>

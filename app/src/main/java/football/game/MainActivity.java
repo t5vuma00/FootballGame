@@ -1,11 +1,14 @@
 package football.game;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,11 +37,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startGame(View view){
-        stopService(bgMusic);
+        //stopService(bgMusic);
         //Intent intent = new Intent(this, gameActivity.class);
         Intent chooseSkins = new Intent(this, chooseSkins.class);
         startActivity(chooseSkins);
         //finish();
+    }
+
+    public void onButtonAboutClicked(View  view)
+    {
+        Intent aboutUs = new Intent(this, aboutActivity.class);
+        startActivity(aboutUs);
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        stopService(bgMusic);
+        startService(bgMusic);
     }
 
     protected void setAudio()
@@ -81,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed()
     {
         super.onBackPressed();
-        stopService(bgMusic);
+        //stopService(bgMusic);
         Log.d("BACK", "mBack");
         finish();
     }
@@ -89,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause(){
         super.onPause();
-        stopService(bgMusic);
+        //stopService(bgMusic);
     }
 
     @Override

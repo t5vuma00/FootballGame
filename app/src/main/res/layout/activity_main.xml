@@ -49,7 +49,7 @@
                 android:layout_gravity="center_horizontal"
                 >
 
-                <Button
+                <football.game.customButtonView
                     android:id="@+id/buttonStartGame"
                     style="@style/buttonStyle"
                     android:layout_width="wrap_content"
@@ -73,7 +73,7 @@
                 android:orientation="horizontal"
                 android:layout_gravity="center_horizontal">
 
-                <Button
+                <football.game.customButtonView
                     android:id="@+id/buttonStore"
                     style="@style/buttonStyle"
                     android:layout_width="wrap_content"
@@ -96,14 +96,16 @@
                 android:orientation="horizontal"
                 android:layout_gravity="center_horizontal">
 
-                <Button
+                <football.game.customButtonView
                     android:id="@+id/buttonAbout"
                     style="@style/buttonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:background="@drawable/alinnappi"
-                    android:text="@string/buttonAbout" />
+                    android:text="@string/buttonAbout"
+                    android:onClick="onButtonAboutClicked"
+                    />
             </LinearLayout>
 
             <Space

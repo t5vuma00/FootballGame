@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    tools:context="football.game.aboutActivity"
+    android:background="@drawable/valikko"
+    android:screenOrientation="landscape"
+    android:layout_width="fill_parent"
+
+    >
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        />
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0">
+
+        <TextView
+            android:id="@+id/imageViewKuplaTuomo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_gravity="bottom"
+            android:layout_weight="0.1"
+            android:background="@drawable/puhekupla"
+            android:text="@string/aboutTuomo"
+            android:textAlignment="center" />
+
+        <TextView
+            android:id="@+id/imageViewKuplaMarko"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_gravity="bottom"
+            android:layout_weight="0.1"
+            android:background="@drawable/puhekupla"
+            android:text="@string/aboutMarko"
+            android:textAlignment="center" />
+
+        <TextView
+            android:id="@+id/imageViewKuplaLauri"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="2"
+            android:layout_gravity="bottom"
+            android:layout_weight="0.1"
+            android:background="@drawable/puhekupla"
+            android:text="@string/aboutLauri"
+            android:textAlignment="center" />
+
+        <TextView
+            android:id="@+id/imageViewKuplaJuho"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="3"
+            android:layout_gravity="bottom"
+            android:layout_weight="0.1"
+            android:background="@drawable/puhekupla"
+            android:text="@string/aboutJuho"
+            android:textAlignment="center" />
+
+        <TextView
+            android:id="@+id/imageViewKuplaTaru"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="4"
+            android:layout_gravity="bottom"
+            android:layout_weight="0.1"
+            android:background="@drawable/puhekupla"
+            android:text="@string/aboutTaru"
+            android:textAlignment="center" />
+
+
+    </TableRow>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom"
+        android:layout_weight="0"
+        >
+
+        <ImageView
+            android:id="@+id/imageViewTuomo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_gravity="bottom"
+            android:layout_weight="0.1"
+            app:srcCompat="@drawable/character7" />
+
+        <ImageView
+            android:id="@+id/imageViewMarko"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/character6"
+            android:layout_gravity="bottom"
+            android:layout_column="1"
+            android:layout_weight="0.1"
+            />
+
+        <ImageView
+            android:id="@+id/imageViewLauri"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/character4"
+            android:layout_gravity="bottom"
+            android:layout_column="2"
+            android:layout_weight="0.1"
+            />
+
+        <ImageView
+            android:id="@+id/imageViewJuho"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/character1"
+            android:layout_gravity="bottom"
+            android:layout_column="3"
+            android:layout_weight="0.1"
+            />
+
+        <ImageView
+            android:id="@+id/imageViewTaru"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/character2"
+            android:layout_gravity="bottom"
+            android:layout_column="4"
+            android:layout_weight="0.1"
+            />
+    </TableRow>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom"
+        android:layout_weight="0.03"
+        >
+
+        <football.game.customTextView
+            android:id="@+id/textViewTuomo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:text="@string/Tuomo"
+            android:layout_gravity="bottom|center_horizontal"
+            style="@style/buttonStyle"
+            android:background="@drawable/nimikyltti"
+            android:textAlignment="center"
+            android:layout_weight="0.1"
+            />
+
+        <football.game.customTextView
+            android:id="@+id/textViewMarko"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/Marko"
+            android:layout_column="1"
+            android:layout_gravity="bottom|center_horizontal"
+            style="@style/buttonStyle"
+            android:background="@drawable/nimikyltti"
+            android:textAlignment="center"
+            android:layout_weight="0.1"
+            />
+
+        <football.game.customTextView
+            android:id="@+id/textViewLauri"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/Lauri"
+            android:layout_column="2"
+            android:layout_gravity="bottom|center_horizontal"
+            style="@style/buttonStyle"
+            android:background="@drawable/nimikyltti"
+            android:textAlignment="center"
+            android:layout_weight="0.1"
+            />
+
+        <football.game.customTextView
+            android:id="@+id/textViewJuho"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/Juho"
+            android:layout_column="3"
+            android:layout_gravity="bottom|center_horizontal"
+            style="@style/buttonStyle"
+            android:background="@drawable/nimikyltti"
+            android:textAlignment="center"
+            android:layout_weight="0.1"
+            />
+
+        <football.game.customTextView
+            android:id="@+id/textViewTaru"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/Taru"
+            android:layout_column="4"
+            android:layout_gravity="bottom|center_horizontal"
+            style="@style/buttonStyle"
+            android:background="@drawable/nimikyltti"
+            android:textAlignment="center"
+            android:layout_weight="0.1"
+            />
+    </TableRow>
+</TableLayout>

@@ -99,6 +99,7 @@ public class backgroundAudioHandler extends Service {
             player1 = MediaPlayer.create(this, R.raw.ingamemusic);
             player2 = MediaPlayer.create(this, R.raw.ingamemusic);
         }
+
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {

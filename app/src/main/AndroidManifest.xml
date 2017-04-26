@@ -22,13 +22,21 @@
         <activity
             android:name=".gameActivity"
             android:screenOrientation="sensorLandscape"
-            android:uiOptions="none"></activity>
+            android:uiOptions="none" />
 
         <service
             android:name=".backgroundAudioHandler"
             android:enabled="true" />
 
-        <activity android:name=".chooseSkins"></activity>
+        <activity android:name=".chooseSkins"
+            android:screenOrientation="sensorLandscape"
+            />
+        <activity android:name=".aboutActivity"
+            android:screenOrientation="sensorLandscape"
+
+            >
+
+        </activity>
     </application>
 
 </manifest>
