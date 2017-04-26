@@ -80,6 +80,7 @@ public class chooseSkins extends AppCompatActivity {
 
 
 
+        /*
         //Asetetaan fontti textvieweihin
         String customFont = "multiballsfont.ttf";
         Typeface typeface = Typeface.createFromAsset(getAssets(), customFont);
@@ -91,6 +92,7 @@ public class chooseSkins extends AppCompatActivity {
         textViewBackground.setTypeface(typeface);
         textViewPlayer1.setTypeface(typeface);
         textViewPlayer2.setTypeface(typeface);
+        */
 
         //Piilottaa sovelluksen nimen
         getSupportActionBar().hide();
