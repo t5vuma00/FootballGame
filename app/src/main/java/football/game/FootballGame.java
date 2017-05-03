@@ -699,8 +699,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         }
 
     }
-
-
+    
     //
     //Otetaan huomioon ilmanvastus ja painovoima
     public void physicsFriction(){
