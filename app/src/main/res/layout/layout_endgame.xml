@@ -3,10 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:background="@drawable/background"
-    tools:context="football.game.MainActivity">
+    android:background="@drawable/backgroundpause">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -22,18 +20,17 @@
             <Space
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.45"/>
+                android:layout_weight="0.5"/>
 
             <ImageView
                 android:id="@+id/imageView"
-                android:layout_weight="0.55"
+                android:layout_weight="0.5"
                 android:layout_width="200sp"
                 android:layout_height="0dp"
                 android:layout_gravity="bottom|center_horizontal"
                 app:srcCompat="@drawable/jalat" />
 
         </LinearLayout>
-
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -44,32 +41,15 @@
             <Space
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.05"/>
+                android:layout_weight="0.15"/>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:weightSum="1"
-                android:layout_weight="0.2"
-                android:orientation="horizontal">
-
-
-                <Space
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.2"/>
-
-                <ImageView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.6"
-                    android:background="@drawable/multiballslogo"
-                    android:layout_gravity="center_vertical"/>
-
-            </LinearLayout>
-
-
-
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="30sp"
+                android:layout_weight="0.1"
+                android:layout_gravity="center"
+                android:text="Game ended" />
 
             <Space
                 android:layout_width="wrap_content"
@@ -89,24 +69,22 @@
                     android:layout_weight="0.35"/>
 
                 <Button
-                    android:id="@+id/buttonStartGame"
+                    android:id="@+id/buttonContinue"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="0.3"
                     android:layout_gravity="center_horizontal"
-                    android:textColor="@color/buttonTextColor"
+                    android:onClick="playAgain"
                     android:background="@drawable/ylinnappi"
-                    android:onClick="startGame"
-                    android:text="@string/buttonStartGame" />
+                    android:textColor="@color/buttonTextColor"
+                    android:text="@string/buttonPlayAgain" />
 
             </LinearLayout>
-
 
             <Space
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.05"/>
-
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -121,17 +99,16 @@
                     android:layout_weight="0.375"/>
 
                 <Button
-                    android:id="@+id/buttonStore"
+                    android:id="@+id/buttonMainMenu"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="0.25"
                     android:layout_gravity="center"
                     android:background="@drawable/keskinappi"
                     android:textColor="@color/buttonTextColor"
-                    android:text="@string/buttonStore" />
-
+                    android:onClick="goMainMenu"
+                    android:text="@string/buttonMainmenu" />
             </LinearLayout>
-
 
             <Space
                 android:layout_width="wrap_content"
@@ -148,35 +125,19 @@
                 <Space
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.1"/>
-
-                <ImageView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/pellaappalogo"
-                    android:layout_weight="0.1"/>
-
-                <Space
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.175"/>
+                    android:layout_weight="0.375"/>
 
                 <Button
-                    android:id="@+id/buttonAbout"
+                    android:id="@+id/buttonResetBall"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
                     android:layout_weight="0.25"
                     android:background="@drawable/alinnappi"
                     android:textColor="@color/buttonTextColor"
-                    android:text="@string/buttonAbout"
-                    android:onClick="onButtonAboutClicked" />
+                    android:text="@string/buttonResetBall" />
 
             </LinearLayout>
-
         </LinearLayout>
-
     </FrameLayout>
-
 </LinearLayout>
-

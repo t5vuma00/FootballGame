@@ -46,13 +46,13 @@ public class chooseSkins extends AppCompatActivity {
 
     //Alustetaan taulukko, joka sisältää taustojen kuvat 0-1
     private int[] backgroundArray = {
-            R.drawable.aurinkotausta,
-            R.drawable.kaupunkitausta
+            R.drawable.backgroundsun,
+            R.drawable.backgroundcity
     };
 
     //Alustetaan taulukko, joka sisältää jalkapallojen kuvat 0-1
     private int[] footballArray = {
-            R.drawable.football1,
+            R.drawable.football,
             R.drawable.football2
     };
 
@@ -210,6 +210,17 @@ public class chooseSkins extends AppCompatActivity {
         editor.apply();
 
         startActivity(gActivity);
+    }
+
+    @Override
+    public void onBackPressed(){
+        //stopService(bgMusic);
+        super.onBackPressed();
+        finish();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        //super.onBackPressed();
+        //finish();
     }
 
     @Override

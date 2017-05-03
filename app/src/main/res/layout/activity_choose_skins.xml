@@ -5,166 +5,226 @@
     android:layout_height="match_parent"
     tools:context="football.game.chooseSkins"
     android:id="@+id/chooseSkins"
-    android:background="@drawable/valikko"
+    android:background="@drawable/background"
     android:screenOrientation="landscape"
     android:layout_width="fill_parent"
-    android:stretchColumns="0,2"
     >
-
-
 
     <TableRow
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        >
-
+        android:layout_weight="0.1">
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/textViewBackground"
+            style="@style/buttonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Background"
-            style="@style/buttonStyle"
             android:layout_column="3"
+            android:layout_gravity="center"
+            android:text="@string/labelBackground"
+            android:textAlignment="center"
+            android:textSize="50sp"
+            android:layout_weight="0"
+
+
             />
     </TableRow>
 
     <TableRow
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
 
         <Button
             android:id="@+id/buttonBackgroundLeft"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="onButtonBackgroundLeft"
-            android:text="BGLEFT"
-            android:background="@drawable/pallonuoli1mdpi"
             android:layout_column="2"
-            />
+            android:layout_weight="0"
+            android:layout_gravity="left"
+            android:background="@drawable/ballarrowleft"
+            android:onClick="onButtonBackgroundLeft" />
 
 
         <Button
             android:id="@+id/buttonBackgroundRight"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_column="4"
+            android:layout_weight="0"
+            android:background="@drawable/ballarrowright"
             android:onClick="onButtonBackgroundRight"
-            android:text="BGRIGHT"
-            android:background="@drawable/pallonuoli2mdpi"
-            android:layout_column="3"/>
-    </TableRow>
-
-    <TableRow
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+            android:layout_gravity="right"
+            />
 
 
     </TableRow>
 
+    <TableRow>
+        <TextView
+            android:id="@+id/textViewPlayer1"
+            style="@style/buttonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_weight="0"
+            android:text="@string/labelPlayer1"
+            android:textAlignment="center"
+            android:layout_gravity="center"
+
+            />
+
+        <TextView
+            android:id="@+id/textViewPlayer2"
+            style="@style/buttonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="5"
+            android:layout_gravity="center"
+            android:layout_weight="0"
+            android:text="@string/labelPlayer2"
+            android:textAlignment="center" />
+
+    </TableRow>
+
+
     <TableRow
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent"
+        android:layout_weight="0">
 
         <Button
             android:id="@+id/buttonCharacter1Left"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="onButtonCharacter1Left"
-            android:text="C1LEFT"
-            android:background="@drawable/pelaaja1nuoli1mdpi"
             android:layout_column="0"
-            />
+            android:layout_gravity="center_vertical|left"
+            android:layout_weight="0"
+            android:background="@drawable/player1arrowleft"
+            android:onClick="onButtonCharacter1Left" />
 
         <ImageView
             android:id="@+id/imageCharacter1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:srcCompat="@drawable/character1"
-            android:layout_column="0"/>
+            android:layout_column="1"
+            android:layout_weight="0.1"
+            app:srcCompat="@drawable/character1" />
 
         <Button
             android:id="@+id/buttonCharacter1Right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="onButtonCharacter1Right"
-            android:text="C1RIGHT"
-            android:background="@drawable/pelaaja1nuoli2mdpi"
             android:layout_column="2"
+            android:layout_weight="0"
+            android:background="@drawable/player1arrowright"
+            android:onClick="onButtonCharacter1Right"
+            android:layout_gravity="center_vertical|right"
+            />
+
+        <TextView
+            android:id="@+id/textViewBall"
+            style="@style/buttonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="3"
+            android:layout_weight="0"
+            android:text="@string/labelBall"
+            android:textAlignment="center"
+            android:layout_gravity="bottom"
             />
 
         <Button
             android:id="@+id/buttonCharacter2Left"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_column="4"
+            android:layout_weight="0"
+            android:background="@drawable/player2arrowleft"
             android:onClick="onButtonCharacter2Left"
-            android:text="C2LEFT"
-            android:background="@drawable/pelaaja2nuoli1mdpi"
-            android:layout_column="3"
+            android:layout_gravity="center_vertical|left"
             />
 
         <ImageView
             android:id="@+id/imageCharacter2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:srcCompat="@drawable/character2"
-            android:layout_column="1"
-            />
+            android:layout_column="5"
+            android:layout_weight="0.1"
+            app:srcCompat="@drawable/character2" />
 
         <Button
             android:id="@+id/buttonCharacter2Right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_column="6"
+            android:layout_weight="0"
+            android:background="@drawable/player2arrowright"
             android:onClick="onButtonCharacter2Right"
-            android:text="C2RIGHT"
-            android:background="@drawable/pelaaja2nuoli2mdpi"
-            android:layout_column="1"
+            android:layout_gravity="center_vertical|right"
             />
 
     </TableRow>
 
     <TableRow
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.1">
 
         <Button
             android:id="@+id/buttonBallLeft"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="onButtonBallLeft"
-            android:text="BLEFT"
-            android:layout_column="1"
-            android:background="@drawable/pallonuoli1mdpi"
-            />
+            android:layout_column="2"
+            android:layout_gravity="right"
+            android:layout_weight="0"
+            android:background="@drawable/ballarrowleft"
+            android:onClick="onButtonBallLeft" />
 
         <ImageView
             android:id="@+id/imageBall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:srcCompat="@drawable/football1"
-            android:layout_column="1"
+            android:layout_column="3"
+            android:layout_weight="0"
+            app:srcCompat="@drawable/football"
+            android:layout_gravity="center"
             />
 
         <Button
             android:id="@+id/buttonBallRight"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="onButtonBallRight"
-            android:text="BRIGHT"
             android:layout_column="4"
-            android:background="@drawable/pallonuoli2mdpi"
-            />
+            android:layout_weight="0"
+            android:layout_gravity="right"
+            android:background="@drawable/ballarrowright"
+            android:onClick="onButtonBallRight" />
+
+
+    </TableRow>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.1">
+
 
         <Button
             android:id="@+id/buttonContinue"
+            style="@style/buttonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_column="1"
-            android:layout_gravity="center_horizontal"
+            android:layout_column="3"
+            android:layout_gravity="bottom"
+            android:background="@drawable/startsign"
             android:onClick="onButtonContinue"
-            android:text="Continue"
-            style="@style/buttonStyle"
-            android:background="@drawable/start_kylttimdpi"
+            android:text="@string/buttonContinue"
+            android:layout_weight="0"
             />
+
     </TableRow>
 
 </TableLayout>

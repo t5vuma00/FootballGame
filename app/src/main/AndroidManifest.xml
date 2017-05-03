@@ -28,7 +28,11 @@
             android:name=".backgroundAudioHandler"
             android:enabled="true" />
 
-        <activity android:name=".chooseSkins"></activity>
+        <activity android:name=".chooseSkins"
+            android:screenOrientation="sensorLandscape"></activity>
+
+        <activity android:name=".aboutActivity"
+            android:screenOrientation="sensorLandscape"></activity>
     </application>
 
 </manifest>

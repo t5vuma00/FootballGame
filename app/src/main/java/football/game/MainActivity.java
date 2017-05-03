@@ -9,9 +9,9 @@ import android.view.WindowManager;
 
 public class MainActivity extends AppCompatActivity {
 
-    private boolean muteOn = false;
-    private String audio = null;
-    Intent bgMusic;
+    //private boolean muteOn = false;
+    //private String audio = null;
+    //Intent bgMusic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,23 +24,31 @@ public class MainActivity extends AppCompatActivity {
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         //määritellään service intentiksi
-        bgMusic = new Intent(this, backgroundAudioHandler.class);
+        //bgMusic = new Intent(this, backgroundAudioHandler.class);
 
         //Aloittaa musiikin toistamisen
-        audio = "setupMusic";
-        setAudio();
+        //audio = "setupMusic";
+        //setAudio();
 
         setContentView(R.layout.activity_main);
     }
 
     public void startGame(View view){
-        stopService(bgMusic);
+        //stopService(bgMusic);
         //Intent intent = new Intent(this, gameActivity.class);
         Intent chooseSkins = new Intent(this, chooseSkins.class);
         startActivity(chooseSkins);
-        //finish();
+        finish();
     }
 
+    public void onButtonAboutClicked(View  view)
+    {
+        Intent aboutUs = new Intent(this, aboutActivity.class);
+        startActivity(aboutUs);
+    }
+
+
+    /*
     protected void setAudio()
     {
         if(muteOn == true)
@@ -76,27 +84,27 @@ public class MainActivity extends AppCompatActivity {
         }
         setAudio();
     }
-
+    */
     @Override
     public void onBackPressed()
     {
         super.onBackPressed();
-        stopService(bgMusic);
+        //stopService(bgMusic);
         Log.d("BACK", "mBack");
-        finish();
+        //finish();
     }
 
     @Override
     protected void onPause(){
         super.onPause();
-        stopService(bgMusic);
+        //stopService(bgMusic);
     }
 
     @Override
     public void onDestroy()
     {
         super.onDestroy();
-        stopService(bgMusic);
+        //stopService(bgMusic);
     }
 
     @Override

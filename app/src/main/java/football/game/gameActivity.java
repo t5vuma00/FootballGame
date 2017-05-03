@@ -1,21 +1,23 @@
 package football.game;
 
-import android.content.ComponentName;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.view.WindowManager;
 
-public class gameActivity extends AppCompatActivity {
+public class gameActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-    Intent bgMusic;
-    Intent sSkins;
-    public String character1;
-    public String character2;
+    //Intent bgMusic;
+    FootballGame footballGame;
+
+    SharedPreferences sharedPreferences;
+    SharedPreferences.Editor editor;
+
+    public static final String key_endgame = "endgame";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,49 +30,26 @@ public class gameActivity extends AppCompatActivity {
         //Piilottaa notification barin
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        //setContentView(new FootballGame(this, null));
+        //Luodaan muuttuja johon footballgame pääsee käsiksi
+        createSharedPreferences();
 
-        bgMusic = new Intent(this, backgroundAudioHandler.class);
-        bgMusic.putExtra("audio", "inGameMusic");
-        //bindService(bgMusic, mServerConn, Context.BIND_AUTO_CREATE);
-        startService(bgMusic);
+        //PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener();
 
 
-
-        //Tarkistetaan hahmot
-        Intent cSkins = getIntent();
-        Log.d("gActivity", "EXTRAS_COMING");
-
-        Bundle extras = cSkins.getExtras();
-        if (extras != null){
-            character1 = (String) cSkins.getExtras().get("character1");
-            character2 = (String) cSkins.getExtras().get("character2");
-
-            Log.d("gActivity C1", character1);
-            Log.d("gActivity C2", character2);
-
-            //sSkins.putExtra("character1", character1);
-            //sSkins.putExtra("character2", character2);
-
-            //startActivity(sSkins);
-        }
+        footballGame = new FootballGame(this,null);
+        setContentView(footballGame);
+        //= (ImageView)findViewById(R.id.jalat) ;
 
 
-/*
-        SharedPreferences prefs = getSharedPreferences("hahmovalinnat", MODE_PRIVATE);
-        String restoredText = prefs.getString("text", null);
-        if (restoredText != null) {
-            String testiCharacter1 = prefs.getString("character1", "No name defined");//"No name defined" is the default value.
-            Log.d("testiCharacter12", testiCharacter1);
-            //int idName = prefs.getInt("idName", 0); //0 is the default value.
-        }
-        */
+        /*
+         bgMusic = new Intent(this, backgroundAudioHandler.class);
+         bgMusic.putExtra("audio", "inGameMusic");
+         bindService(bgMusic, mServerConn, Context.BIND_AUTO_CREATE);*/
+        //firstTimeStarting = false;
 
-        setContentView(new FootballGame(this, null));
+
     }
-
-
-    //Bindausta varten
+    /*
     protected ServiceConnection mServerConn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
@@ -81,68 +60,104 @@ public class gameActivity extends AppCompatActivity {
         public void onServiceDisconnected(ComponentName name) {
 
         }
-    };
+    };*/
+
 
     @Override
     public void onBackPressed(){
-        FootballGameThread footballGameThread =  new FootballGameThread(null);
-        footballGameThread.setRunning(false);
-        stopService(bgMusic);
-        super.onBackPressed();
+        stopFootballGame();
 
-        finish();
+        //stopService(bgMusic);
+        setContentView(R.layout.layout_pause);
 
+        Log.d("gameActivity", "onbackpressed");
+        //super.onBackPressed();
+        //finish();
     }
 
+    @Override
+    public void onResume(){
+        super.onResume();
+        FootballGameThread footballGameThread = new FootballGameThread(null);
+        footballGameThread.setRunning(true);
+
+    }
 
     @Override
     protected void onPause(){
         super.onPause();
-        stopService(bgMusic);
+        //stopService(bgMusic);
 
-        FootballGameThread footballGameThread =  new FootballGameThread(null);
-        footballGameThread.setRunning(false);
+        stopFootballGame();
     }
 
     @Override
-    protected void onResume(){
-        super.onResume();
-        //startService(bgMusic);
-
-        FootballGameThread footballGameThread =  new FootballGameThread(null);
-        footballGameThread.setRunning(true);
-    }
-
-
-    @Override
-    protected void onDestroy()
-    {
-        finish();
-
-
-        FootballGameThread footballGameThread =  new FootballGameThread(null);
-        footballGameThread.setRunning(false);
-        stopService(bgMusic);
-        super.onDestroy();
-
-
-        Log.d("gDestroy", "gDestroy");
-
-    }
-/*
-    @Override
-    protected void onStop()
-    {
+    protected void onStop(){
         super.onStop();
-        stopService(bgMusic);
 
+        //stopService(bgMusic);
+
+        stopFootballGame();
+
+        //finish();
+    }
+
+    //Pelaaja haluaa jatkaa peliä kun peli on vielä kesken
+    public void continueGame(View view){
+        //stopService(bgMusic);
+        //stopFootballGame();
+        setContentView(footballGame);
+    }
+
+    //Mennään main menuun
+    public void goMainMenu(View view){
+        //stopService(bgMusic);
         finish();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
 
-        Log.d("gSTOP", "gSTOP");
+    public void resetBall(View view){
+        footballGame.setStartCoordinates();
+        footballGame.nullSpeeds();
+        setContentView(footballGame);
+    }
+
+    //Pelaaja haluaa pelata uudelleen
+    public void playAgain(View view){
+        setContentView(footballGame);
+        editor.putBoolean(key_endgame, false);
+        editor.apply();
+    }
+
+    //Pysäytetään jalkapallopeli
+    private void stopFootballGame(){
+        FootballGameThread footballGameThread =  new FootballGameThread(null);
+        footballGameThread.setRunning(false);
+    }
+
+    //Luodaan muuttuja joka näkyy muissakin activityissä
+    public void createSharedPreferences(){
+
+        sharedPreferences = getApplicationContext().getSharedPreferences("endgame", MODE_PRIVATE);
+        // SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+        editor = sharedPreferences.edit();
+        editor.putBoolean(key_endgame, false);
+        editor.apply();
 
     }
-*/
 
+    //Katsotaan muuttuuko jaetun muuttujan arvo
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+
+        if (key.equals(key_endgame)){
+            //Jos jaetun muuttujan arvo muuttuu todeksi tiedetään että peli loppui ja pitää laittaa lopetusnäyttö
+            boolean booleanEndgame = sharedPreferences.getBoolean(key_endgame, false);
+            if(booleanEndgame){
+                setContentView(R.layout.layout_endgame);
+            }
+        }
+    }
 }
-
-

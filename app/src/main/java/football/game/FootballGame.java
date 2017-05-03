@@ -1,7 +1,6 @@
 package football.game;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,7 +8,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
@@ -19,15 +17,11 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 
-//implements View.OnTouchListener
 
 public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
-
-
-
-    //Luodaan olio luokasta handleBitmaps
-    //handleBitmaps bitmapHandler = new handleBitmaps(getContext());
+    SurfaceHolder holder;
+    FootballGameThread footballGameThread;
 
     //Alustetaan taulukko, joka sisältää hahmojen kuvat
     private int[] playerSkinArray = {
@@ -48,16 +42,12 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
     //Alustetaan taulukko, joka sisältää jalkapallojen kuvat 0-1
     private int[] footballArray = {
-            R.drawable.football1,
+            R.drawable.football,
             R.drawable.football2
     };
 
 
     String skinP1 = null;
-
-    SurfaceHolder holder;
-    FootballGameThread footballGameThread;
-
 
     //Pelissä käytetyt kuvat
     private Bitmap bitmapFootball;
@@ -73,8 +63,6 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
     private Bitmap bitmapJoystick1;
     private Bitmap bitmapJoystick2;
-
-
 
     //Pelaajan näytön koko
     private int screenWidth = 0;
@@ -101,12 +89,15 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     private double player2SpeedX = 0;
     private double player2SpeedY = 1;
 
+    //private int player1Angle = 0;
+
     private int PLAYER_MAX_SPEED = 20;
     private int BALL_MAX_SPEED = 40;
     private int increasePlayerSpeed = 5;
     private double increaseBallSpeed = 0.5;
 
-    private int playerRadius = 0;
+    private int playerRadiusVertical = 0;
+    private int playerRadiusHorizontal = 0;
 
     private int ballCenterX = 0;
     private int ballCenterY = 0;
@@ -148,23 +139,22 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
     double friction = 0;
     double gravity = 0;
 
-    private long hitTime = 0;
+    //private long hitTime = 0;
     private long scoreTime = 0;
 
-    Ball ball;
+    //Ball ball;
 
     simpleJoystick player1Joystick;
     simpleJoystick player2Joystick;
 
-
-    View view;
-    //AttributeSet attributeSet
+    //Context testi;
 
     public FootballGame(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
+        Log.d("football", "aloitustakoskavaanvoin");
         //setWillNotDraw(false);
         //Display d = ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-
+        //testi = context;
         //Katsotaan näytön koko
         Display display = ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         Point size = new Point();
@@ -172,32 +162,24 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         screenWidth = size.x;
         screenHeight = size.y;
 
-        //attributeSet2 = attributeSet;
         this.setOnTouchListener(this);
-        ball = new Ball(context, attributeSet);
 
         player1Joystick = new simpleJoystick(context, attributeSet);
         player2Joystick = new simpleJoystick(context, attributeSet);
-
 
         footballGameThread = new FootballGameThread(this);
         //Määritellään arvot näytölle sopiviksi
         setScaledValues();
         //Määritellään pallon aloitus keskipiste
         setStartCoordinates();
+
         //Määritellään teksti joka tulostaa tulokset näytölle
         setText();
-
         //Määritellään kuvat
         createBitmaps();
 
         holder = getHolder();
-        /*
-        String testi = "";
-        testi = Integer.toString(screenWidth);
-        testi += " ";
-        testi += Integer.toString(screenHeight);
-        Log.d("football", testi);*/
+
         Log.d("football", "aloitus");
 
         holder.addCallback(new SurfaceHolder.Callback(){
@@ -241,15 +223,15 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         PLAYER_MAX_SPEED = screenWidth / 75;
         BALL_MAX_SPEED = screenWidth / 50;
         increasePlayerSpeed = screenWidth / 400;
-        increaseBallSpeed = (double)screenWidth / 4000;
+        //increaseBallSpeed = (double)screenWidth / 4000;
+        increaseBallSpeed = (double)screenWidth / 8000;
 
-        //gravity = (double)screenHeight / ((double)screenHeight * 2);
         gravity = (double)screenHeight / 1500;
-        //friction = (double)screenWidth / ((double)screenHeight * 6);
         friction = (double)screenWidth / 10000;
 
         ballRadius = screenWidth / 40;
-        playerRadius = screenWidth / 20;
+        playerRadiusHorizontal = screenWidth / 23;
+        playerRadiusVertical = screenWidth / 18;
         joystickRadius = screenWidth / 15;
 
         goalWidth = (int)((double)screenWidth * 0.13);
@@ -283,15 +265,13 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         player1Joystick.setJoystickCenterY(joystick1CenterY);
         player1Joystick.setJoystickRadius(joystickRadius);
         player1Joystick.setColor("RED");
-        player1Joystick.setOffset(joystickRadius /2);
+        player1Joystick.setOffset(joystickRadius / 2);
 
         player2Joystick.setJoystickCenterX(joystick2CenterX);
         player2Joystick.setJoystickCenterY(joystick2CenterY);
         player2Joystick.setJoystickRadius(joystickRadius);
         player2Joystick.setColor("BLUE");
-        player2Joystick.setOffset(joystickRadius /2);
-
-        //joystick1CenterY = (int)((double)screenHeight * 0.78);
+        player2Joystick.setOffset(joystickRadius / 2);
 
         goalLeftX = gameAreaMinX;
         goalLeftY = (int)((double)screenHeight * 0.4);
@@ -337,16 +317,9 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         player2SpeedY = 0;
     }
 
+
     //Luodaan kaikki kuvat joita aletaan piirtämään näytölle
     public void createBitmaps(){
-
-        /*
-        bitmapHandler.setSizes(ballRadius, playerRadius,screenWidth, screenHeight, goalWidth, goalHeight, joystickRadius, ballCenterX, ballCenterY, player1CenterX, player1CenterY, player2CenterX, player2CenterY,
-                goalLeftX, goalLeftY, goalRightX, goalRightY, joystick1CenterX, joystick1CenterY, joystick2CenterX, joystick2CenterY, goalTextX, goalTextY);
-
-        bitmapHandler.createBitmaps();
-*/
-
 
         //Otetaan vastaan käyttäjän asettamat hahmot
         SharedPreferences pref = getContext().getSharedPreferences("hahmovalinnat", 0);
@@ -359,10 +332,10 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         bitmapFootball = Bitmap.createScaledBitmap(bitmapFootball, ballRadius * 2, ballRadius * 2, true);
 
         bitmapPlayer1 = BitmapFactory.decodeResource(getResources(), playerSkinArray[skinP1]);
-        bitmapPlayer1 = Bitmap.createScaledBitmap(bitmapPlayer1, playerRadius * 2, playerRadius * 2, true);
+        bitmapPlayer1 = Bitmap.createScaledBitmap(bitmapPlayer1, playerRadiusHorizontal * 2, playerRadiusVertical * 2, true);
 
         bitmapPlayer2 = BitmapFactory.decodeResource(getResources(), playerSkinArray[skinP2]);
-        bitmapPlayer2 = Bitmap.createScaledBitmap(bitmapPlayer2, playerRadius * 2, playerRadius * 2, true);
+        bitmapPlayer2 = Bitmap.createScaledBitmap(bitmapPlayer2, playerRadiusHorizontal * 2, playerRadiusVertical * 2, true);
 
         bitmapBackgroundImage = BitmapFactory.decodeResource(getResources(), backgroundArray[background]);
         bitmapBackgroundImage = Bitmap.createScaledBitmap(bitmapBackgroundImage, screenWidth, screenHeight, true);
@@ -384,13 +357,11 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
         bitmapGoalTextRed = BitmapFactory.decodeResource(getResources(), R.drawable.goaltextred);
         bitmapGoalTextRed = Bitmap.createScaledBitmap(bitmapGoalTextRed, screenWidth / 5, screenHeight / 5, true);
-
-
     }
 
     //Päivittää pallon ja pelaajien sijainnit ja katsoo tapahtuuko törmäyksiä
     protected void physics(){
-        hitTime = System.currentTimeMillis();
+        long hitTime = System.currentTimeMillis();
 
         //Pallon sivut
         double ballRightX = ballCenterX + ballRadius;
@@ -399,18 +370,16 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         double ballBottomY = ballCenterY + ballRadius;
 
         //Pelaaja1:n sivut
-        double player1RightX = player1CenterX + playerRadius;
-        double player1LeftX = player1CenterX - playerRadius;
-        double player1TopY = player1CenterY - playerRadius;
-        double player1BottomY = player1CenterY + playerRadius;
+        double player1RightX = player1CenterX + playerRadiusHorizontal;
+        double player1LeftX = player1CenterX - playerRadiusHorizontal;
+        double player1TopY = player1CenterY - playerRadiusVertical;
+        double player1BottomY = player1CenterY + playerRadiusVertical;
 
         //Pelaaja2:n sivut
-        double player2RightX = player2CenterX + playerRadius;
-        double player2LeftX = player2CenterX - playerRadius;
-        double player2TopY = player2CenterY - playerRadius;
-        double player2BottomY = player2CenterY + playerRadius;
-
-
+        double player2RightX = player2CenterX + playerRadiusHorizontal;
+        double player2LeftX = player2CenterX - playerRadiusHorizontal;
+        double player2TopY = player2CenterY - playerRadiusVertical;
+        double player2BottomY = player2CenterY + playerRadiusVertical;
 
         //Pallon sivut + nopeudet
         double ballRightTotal = ballCenterX + ballRadius + ballSpeedX;
@@ -419,21 +388,18 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         double ballBottomTotal = ballCenterY + ballRadius + ballSpeedY;
 
         //Pelaaja1:n sivut + nopeudet
-        double player1RightTotal = player1CenterX + playerRadius + player1SpeedX;
-        double player1LeftTotal = player1CenterX - playerRadius + player1SpeedX;
-        double player1TopTotal = player1CenterY - playerRadius + player1SpeedY;
-        double player1BottomTotal = player1CenterY + playerRadius + player1SpeedY;
+        double player1RightTotal = player1CenterX + playerRadiusHorizontal + player1SpeedX;
+        double player1LeftTotal = player1CenterX - playerRadiusHorizontal + player1SpeedX;
+        double player1TopTotal = player1CenterY - playerRadiusVertical + player1SpeedY;
+        double player1BottomTotal = player1CenterY + playerRadiusVertical + player1SpeedY;
 
         //Pelaaja2:n sivut + nopeus
-        double player2RightTotal = player2CenterX + playerRadius + player2SpeedX;
-        double player2LeftTotal = player2CenterX - playerRadius + player2SpeedX;
-        double player2TopTotal = player2CenterY - playerRadius + player2SpeedY;
-        double player2BottomTotal = player2CenterY + playerRadius + player2SpeedY;
+        double player2RightTotal = player2CenterX + playerRadiusHorizontal + player2SpeedX;
+        double player2LeftTotal = player2CenterX - playerRadiusHorizontal + player2SpeedX;
+        double player2TopTotal = player2CenterY - playerRadiusVertical + player2SpeedY;
+        double player2BottomTotal = player2CenterY + playerRadiusVertical + player2SpeedY;
 
         physicsFriction();
-        //moveBallAndPlayers();
-        //physicsWallCollisions();
-        //physicsPlayerCollisions();
 
 
         //Muutetaan pallon kohtaa nopeuden mukaan jos se ei mene reunojen yli
@@ -452,7 +418,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         if(ballTopTotal > 0 && ballBottomTotal < gameAreaMaxY){
             //Pallo osuu vasemman maalin ylärimaan
             if(goalLeftX + goalWidth > ballCenterX + ballSpeedX  && goalLeftY < ballBottomTotal
-                     && ballBottomTotal < goalLeftY + (int)((double)goalHeight *0.1)){
+                    && ballBottomTotal < goalLeftY + (int)((double)goalHeight *0.1)){
                 ballSpeedY = ballSpeedY * -0.75;
                 //ballSpeedY = -ballSpeedY;
                 //Otetaan pallo pois maalin ylärimasta
@@ -609,7 +575,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         if(((player1RightX >= ballLeftX && player1CenterX <= ballCenterX) || (player1LeftX <= ballRightX && player1CenterX >= ballCenterX)) &&
                 ((player1BottomY >= ballTopY && player1CenterY <= ballCenterY) || (player1TopY <= ballBottomY && player1CenterY >= ballCenterY))){
             double angle = calculateAngle(ballCenterX, ballCenterY, player1CenterX, player1CenterY);
-            calculateSpeed(angle);
+            calculateSpeed(angle, player1SpeedX, player1SpeedY);
         }
 
         //Pelaaja2 ja pallon töyrmäys
@@ -617,7 +583,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         if(((player2RightX >= ballLeftX && player2CenterX <= ballCenterX) || (player2LeftX <= ballRightX && player2CenterX >= ballCenterX)) &&
                 ((player2BottomY >= ballTopY && player2CenterY <= ballCenterY) || (player2TopY <= ballBottomY && player2CenterY >= ballCenterY))){
             double angle = calculateAngle(ballCenterX, ballCenterY, player2CenterX, player2CenterY);
-            calculateSpeed(angle);
+            calculateSpeed(angle, player2SpeedX, player2SpeedY);
         }
 
 
@@ -625,10 +591,9 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         //Pelaajien törmäys x- ja y-akselilla
         //Pelaajien töyrmäys x-akselilla
         if((player1RightTotal > player2LeftTotal && player1CenterX + player2SpeedX < player2CenterX + player2SpeedX ||
-            player1LeftTotal < player2RightTotal && player1CenterX + player1SpeedX > player2CenterX + player2SpeedX)&&
-            (player1TopTotal < player2BottomTotal && player1TopTotal > player2TopTotal ||
-            player1BottomTotal > player2TopTotal && player1BottomTotal < player2BottomTotal)){
-            //Log.d("perkele", "osuit pelaajaan homo");
+                player1LeftTotal < player2RightTotal && player1CenterX + player1SpeedX > player2CenterX + player2SpeedX)&&
+                (player1TopTotal < player2BottomTotal && player1TopTotal > player2TopTotal ||
+                        player1BottomTotal > player2TopTotal && player1BottomTotal < player2BottomTotal)){
             //Pelaaja1 on oikealla ja pelaaja 2 vasemmalla
             if(player1CenterX > player2CenterX){
                 player1SpeedX = Math.abs(player1SpeedX);
@@ -649,9 +614,9 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
 
         //Pelaajien töyrmäys y-akselilla
         if(((player1RightTotal > player2LeftTotal && player1LeftTotal < player2RightTotal) ||
-           (player2RightTotal > player1LeftTotal && player2LeftTotal < player1RightTotal)) &&
-            ((player1TopTotal < player2BottomTotal && player1CenterY + player1SpeedY > player2CenterY + player2SpeedY) ||
-            (player2TopTotal < player1BottomTotal && player2CenterY + player2SpeedY > player1CenterY + player1SpeedY))){
+                (player2RightTotal > player1LeftTotal && player2LeftTotal < player1RightTotal)) &&
+                ((player1TopTotal < player2BottomTotal && player1CenterY + player1SpeedY > player2CenterY + player2SpeedY) ||
+                        (player2TopTotal < player1BottomTotal && player2CenterY + player2SpeedY > player1CenterY + player1SpeedY))){
             if(player1CenterY > player2CenterY){
                 player1SpeedY = Math.abs(player1SpeedY);
                 player1SpeedY = player1SpeedY * 0.75;
@@ -669,11 +634,13 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
             }
         }
 
+
+
         //
         //Katsotaan meneekö pallo maaliin
         //Pallo menee vasempaan maaliin
         //if(ballRightX < goalLeftX + goalWidth && ballTopY > goalLeftY && ballCenterY < goalLeftY + goalHeight)
-        if(ballRightX < goalLeftX + goalWidth && ballTopY > goalLeftY && ballCenterY < goalLeftY + goalHeight){
+        if(ballRightX < goalLeftX + goalWidth && ballCenterY > goalLeftY && ballCenterY < goalLeftY + goalHeight){
             scoreTime = System.currentTimeMillis();
             setStartCoordinates();
             nullSpeeds();
@@ -682,14 +649,13 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
             goalTextRed = false;
             goalTextBlue = true;
             if(player2Score >= 10){
-                //player1Score = 0;
-                //player2Score = 0;
-                footballGameThread.setRunning(false);
+                endGame();
             }
+
         }
 
         //Pallo menee oikeaan maaliin
-        if(ballLeftX > goalRightX && ballTopY > goalRightY && ballCenterY < goalRightY + goalHeight){
+        if(ballLeftX > goalRightX && ballCenterY > goalRightY && ballCenterY < goalRightY + goalHeight){
             scoreTime = System.currentTimeMillis();
             setStartCoordinates();
             nullSpeeds();
@@ -698,11 +664,16 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
             goalTextRed = true;
             goalTextBlue = false;
             if(player1Score >= 10){
-                //player1Score = 0;
-                //player2Score = 0;
-                footballGameThread.setRunning(false);
+                endGame();
             }
         }
+
+        /*
+        //Käännetään pelaajaa
+        if(player1SpeedX > 10){
+            float angle = 30;
+            //bitmapPlayer1 = RotateBitmap(bitmapPlayer1, angle, player1CenterX, player1CenterY);
+        }*/
 
 
         //
@@ -742,7 +713,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         }
 
         //Pallon painovoima
-        if(ballSpeedY < 20 || ballSpeedY != 0){
+        if(ballSpeedY < BALL_MAX_SPEED || ballSpeedY != 0){
             ballSpeedY += gravity;
         }
 
@@ -763,31 +734,44 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         }
 
         //Pelaaja1 painovoima
-        if(player1SpeedY < 20 || player1SpeedY != 0){
+        if(player1SpeedY < PLAYER_MAX_SPEED || player1SpeedY != 0){
             player1SpeedY += gravity;
         }
         //Pelaaja2 painovoima
-        if(player2SpeedY < 20 || player2SpeedY != 0){
+        if(player2SpeedY < PLAYER_MAX_SPEED || player2SpeedY != 0){
             player2SpeedY += gravity;
         }
     }
 
-    public void moveBallAndPlayers(){
 
+
+    private void endGame(){
+
+        player1Score = 0;
+        player2Score = 0;
+
+        updateScore();
+
+        goalTextBlue = false;
+        goalTextRed = false;
+
+        footballGameThread.setRunning(false);
+
+
+        //Muutetaan jaetun arvo todeksi niin tiedetään toisessa activityssä laittaa lopetuslayout
+        //SharedPreferences sharedPreferences = getContext().getSharedPreferences("endgame", 0);
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences("endgame", 0);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        editor.putBoolean("endgame", true);
+
+        editor.apply();
     }
 
-    public void physicsWallCollisions(){
-
-    }
-
-    public void physicsPlayerCollisions(){
-
-    }
 
     public double calculateAngle(int ballX, int ballY, int playerX, int playerY){
 
         double angle;
-        //double anglePlus;
         double xDistance;
         double yDistance;
         xDistance = (double)Math.abs(ballX - playerX);
@@ -796,10 +780,9 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         yDistance = (double)Math.abs(ballY - playerY);
 
         //Lasketaan kulma
-        angle = (double) Math.toDegrees(Math.atan(yDistance / xDistance));
-
-        //Pallo on pelaajan oikeassa alakulmassa
+        angle = Math.toDegrees(Math.atan(yDistance / xDistance));
         /*
+        //Pallo on pelaajan oikeassa alakulmassa
         if(ballX > playerX && ballY > playerY){
             //Ei tarvi tehdä mitään
         }*/
@@ -818,13 +801,25 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         return angle;
     }
 
-    public void calculateSpeed(double angle){
+    public void calculateSpeed(double angle, double playerSpeedX, double playerSpeedY){
 
         //Pallo on pelaajan oikeassa alakulmassa
         if(angle >= 0 && angle < 90){
             double angle2 = 90 - angle;
-            ballSpeedX = angle * increaseBallSpeed;
-            ballSpeedY = angle2 * increaseBallSpeed;
+            //Katsotaan kuinka nopeaa pelaaja menee ja päätetään pallon nopeus x-akselilla
+            if(playerSpeedX > PLAYER_MAX_SPEED / 2){
+                ballSpeedX = angle * increaseBallSpeed * 2;
+            }
+            else{
+                ballSpeedX = angle * increaseBallSpeed;
+            }
+            if(ballCenterY < gameAreaMaxY && ballCenterY > (int)((double)gameAreaMaxY * 0.8)){
+                ballSpeedY = angle2 * -increaseBallSpeed;
+            }
+            else{
+                ballSpeedY = angle2 * increaseBallSpeed * 2;
+            }
+
             if(ballSpeedX < 5){
                 ballSpeedX += 5;
             }
@@ -835,8 +830,14 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         //Pallo on pelaajan vasemmassa alakulmassa
         if(angle >= 90 && angle < 180){
             double angle2 = 180 - angle;
-            ballSpeedX = angle * -increaseBallSpeed;
-            ballSpeedY = angle2 * increaseBallSpeed;
+            if(playerSpeedX < -PLAYER_MAX_SPEED / 2){
+                ballSpeedX = angle * -increaseBallSpeed * 2;
+            }
+            else{
+                ballSpeedX = angle * -increaseBallSpeed;
+            }
+
+            ballSpeedY = angle2 * increaseBallSpeed * 2;
             if(ballSpeedX > -5){
                 ballSpeedX += 5;
             }
@@ -847,8 +848,15 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         //Pallo on pelaajan vasemmassa yläkulmassa
         if(angle >= 180 && angle < 270){
             double angle2 = 270 - angle;
-            ballSpeedX = angle * -increaseBallSpeed;
-            ballSpeedY = angle2 * -increaseBallSpeed;
+
+            if(playerSpeedX < -PLAYER_MAX_SPEED / 2){
+                ballSpeedX = angle * -increaseBallSpeed * 2;
+            }
+            else{
+                ballSpeedX = angle * -increaseBallSpeed;
+            }
+
+            ballSpeedY = angle2 * -increaseBallSpeed * 2;
             if(ballSpeedX > -5){
                 ballSpeedX -= 5;
             }
@@ -859,8 +867,15 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         //Pallo on pelaajan oikeassa yläkulmassa
         if(angle >= 270 && angle < 360){
             double angle2 = 360 - angle;
-            ballSpeedX = angle * increaseBallSpeed;
-            ballSpeedY = angle2 * -increaseBallSpeed;
+
+            if(playerSpeedX > PLAYER_MAX_SPEED / 2){
+                ballSpeedX = angle * increaseBallSpeed * 2;
+            }
+            else{
+                ballSpeedX = angle * increaseBallSpeed;
+            }
+
+            ballSpeedY = angle2 * -increaseBallSpeed * 2;
             if(ballSpeedX < 5){
                 ballSpeedX += 5;
             }
@@ -870,7 +885,12 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         }
 
     }
-
+    /*
+    public static Bitmap RotateBitmap(Bitmap bitmap, float angle, int x, int y){
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(bitmap, x, y, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+    }*/
 
     @Override
     protected void onDraw(Canvas canvas){
@@ -878,27 +898,23 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         super.onDraw(canvas);
 
         if(canvas != null){
-
-
-
-
             //Piirretään taustakuva
             canvas.drawBitmap(bitmapBackgroundImage, 0, 0, null);
 
-
+        /*
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
         paint.setTextSize(38);
         paint.setColor(Color.YELLOW);
 
-        //canvas.drawText(teksti, tekstiX, tekstiY, paint);
+        canvas.drawText(teksti, tekstiX, tekstiY, paint);*/
 
             //Piirretään jalkapallo
             canvas.drawBitmap(bitmapFootball, ballCenterX-ballRadius, ballCenterY-ballRadius, null);
 
             //Piirretään pelaajat
-            canvas.drawBitmap(bitmapPlayer1, player1CenterX-playerRadius, player1CenterY-playerRadius, null);
-            canvas.drawBitmap(bitmapPlayer2, player2CenterX-playerRadius, player2CenterY-playerRadius, null);
+            canvas.drawBitmap(bitmapPlayer1, player1CenterX-playerRadiusHorizontal, player1CenterY-playerRadiusVertical, null);
+            canvas.drawBitmap(bitmapPlayer2, player2CenterX-playerRadiusHorizontal, player2CenterY-playerRadiusVertical, null);
 
             //Piirretään maalit
             canvas.drawBitmap(bitmapGoalLeft, goalLeftX, goalLeftY, null);
@@ -912,16 +928,12 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
             canvas.drawText(score, textX, textY, paintText);
 
             //Piirretään maaliteksti jos pelaaja on saanut maalin
-            if(goalTextBlue == true){
+            if(goalTextBlue){
                 canvas.drawBitmap(bitmapGoalTextBlue, goalTextX, goalTextY, null);
             }
-            if (goalTextRed == true){
+            if (goalTextRed){
                 canvas.drawBitmap(bitmapGoalTextRed, goalTextX, goalTextY, null);
             }
-
-
-
-
 
             //ball.draw(canvas);
             //canvas.drawBitmap(bitmapJoystick1, ballCenterX, ballCenterY, null);
@@ -933,7 +945,6 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         handleTouch(event);
         return true;
     }
-
 
     public void handleTouch(MotionEvent event)
     {
@@ -1097,5 +1108,4 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
             }
         }
     }
-
 }
