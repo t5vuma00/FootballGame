@@ -633,8 +633,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
                 player2SpeedY = player2SpeedY * 0.75;
             }
         }
-
-
+        
 
         //
         //Katsotaan meneekö pallo maaliin
@@ -699,7 +698,7 @@ public class FootballGame extends SurfaceView implements View.OnTouchListener{
         }
 
     }
-    
+
     //
     //Otetaan huomioon ilmanvastus ja painovoima
     public void physicsFriction(){
